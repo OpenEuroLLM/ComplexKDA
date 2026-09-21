@@ -1,0 +1,99 @@
+#!/bin/bash
+# Run a command inside the container the config describes.
+#
+#   lm_scaling/container_run lm_scaling/param_match.py
+#   lm_scaling/container_run lm_scaling/data/verify_corpus.py ladder
+#
+# THIS IS NOT THE SCRIPT THAT SUBMITS. `sbatch` is a host binary talking to
+# the slurm controller over a socket and configuration the image does not
+# carry, so `container_run submit.py --run` writes every job file, registers
+# them with the monitor, and then submits none of them -- failing after the
+# part that looks like the work. Planning, submitting, polling and cancelling
+# go through `login_run` and the venv `make_login_venv.sh` builds.
+#
+# What belongs HERE is anything that has to build a model: param_match.py, the
+# titan_ext tests, a manual torchtitan run. The training job itself needs
+# neither wrapper; the rendered sbatch enters the container on its own through
+# `slurm.launcher_cmd`.
+#
+# The container is the environment for that work on both clusters -- torchtitan
+# and titan_oellm are in the image, fla comes from the repo on PYTHONPATH, and
+# the overlay adds tilelang and the orchestration libraries.
+#
+# THE CONTAINER IS DEFINED ONCE, in config/container/*.yaml. This script used
+# to carry its own copy of the image path, the overlay path and the binds,
+# on the argument that a bootstrap cannot cite the thing it bootstraps. That
+# was wrong: reading the config needs a YAML parser, not the container's
+# python, and the login nodes have one. A test checked the two copies agreed,
+# which is a guard against drift rather than an absence of it.
+#
+# What is left here is the only thing that genuinely cannot come from the
+# config: WHICH container config to read. That is a property of the machine
+# the shell is on, not of any experiment, and it is one word rather than four
+# absolute paths. Override with CKDA_CONTAINER to use another.
+set -eu
+
+REPO=${CKDA_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+CLUSTER=${CLUSTER:-jupiter}
+CONTAINER=${CKDA_CONTAINER:-${CLUSTER}_titan}
+CFG="$REPO/lm_scaling/config/container/$CONTAINER.yaml"
+[ -f "$CFG" ] || { echo "no container config at $CFG" >&2; exit 1; }
+
+# Read image, overlays, binds and args out of it. OmegaConf when it is
+# installed, so `${oc.env:VAR,default}` is resolved by the same code the
+# campaign uses; PyYAML plus that one pattern otherwise. Either way an
+# interpolation this cannot resolve is an ERROR -- silently passing
+# `${oc.env:...}` to apptainer as a filename would report "no such file" and
+# name a path nobody wrote.
+mapfile -t PARTS < <(python3 - "$CFG" <<'PY'
+import os, re, sys
+
+path = sys.argv[1]
+try:
+    from omegaconf import OmegaConf
+    cfg = OmegaConf.to_container(OmegaConf.load(path), resolve=True)
+except ImportError:
+    import yaml
+
+    def env(m):
+        var, _, default = m.group(1).partition(",")
+        return os.environ.get(var, default)
+
+    raw = re.sub(r"\$\{oc\.env:([^}]*)\}", env, open(path).read())
+    cfg = yaml.safe_load(raw)
+
+flat = repr(cfg)
+left = re.search(r"\$\{[^}]*\}", flat)
+if left:
+    sys.exit(f"{path}: cannot resolve {left.group(0)} without hydra; "
+             "install omegaconf on this node or simplify the container config")
+
+print(cfg["image"])
+print("\t".join(cfg.get("args") or []))
+print("\t".join(cfg.get("bind") or []))
+print("\t".join(cfg.get("overlays") or []))
+PY
+) || exit 1
+
+IFS=$'\t' read -r -a ARGS    <<< "${PARTS[1]}"
+IFS=$'\t' read -r -a BINDS   <<< "${PARTS[2]}"
+IFS=$'\t' read -r -a OVERLAY <<< "${PARTS[3]}"
+
+CMD=(apptainer exec)
+for a in "${ARGS[@]}";    do [ -n "$a" ] && CMD+=("$a"); done
+for b in "${BINDS[@]}";   do [ -n "$b" ] && CMD+=(--bind "$b"); done
+for o in "${OVERLAY[@]}"; do [ -n "$o" ] && CMD+=(--overlay "$o:ro"); done
+# The repo itself, which is not in the container config because it is not a
+# property of the container: a job binds it through slurm.launcher_cmd, and
+# an interactive run binds it here.
+# PYTHONPATH keeps the repo first and APPENDS the caller's, which is how a
+# checkout outside the image gets onto the path -- the lm-eval-harness the
+# downstream evaluation runs, for one. `--env` wins over the inherited
+# environment, so without the append an exported PYTHONPATH is silently
+# dropped and the import fails inside the container only.
+CMD+=(--bind "$REPO:$REPO"
+      --env PYTHONPATH="$REPO:$REPO/lm_scaling${PYTHONPATH:+:$PYTHONPATH}"
+      --env CKDA_REPO="$REPO"
+      "${PARTS[0]}" python3)
+
+exec "${CMD[@]}" "$@"

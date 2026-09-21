@@ -1,0 +1,31 @@
+# openbookqa, from allenai/openbookqa rather than the bare `openbookqa` name.
+#
+# Stock names `openbookqa`, which resolves to the script-based canonical repo
+# that datasets 4.4.2 refuses (reported as a Hub connection error). The parquet
+# mirror `allenai/openbookqa` + config `main` is the same 500 test questions,
+# and is what the shared cache holds.
+#
+# WHY IT IS HERE AT ALL: Gated DeltaNet-2 (arXiv:2605.22791) reports OBQA and
+# averages over it; Gated DeltaNet's Table 3 does not. Comparing with the newer
+# paper means scoring it -- see eval_table.py's two conventions.
+task: openbookqa
+dataset_path: allenai/openbookqa
+dataset_name: main
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: question_stem
+doc_to_target: "{{choices.label.index(answerKey.lstrip())}}"
+doc_to_choice: "{{choices.text}}"
+should_decontaminate: true
+doc_to_decontamination_query: question_stem
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

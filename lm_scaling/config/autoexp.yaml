@@ -1,0 +1,15 @@
+# @package _global_
+# Root of the config tree. Every experiment starts from this and overrides
+# what it changes; nothing is composed a second time anywhere in Python.
+defaults:
+  - /backend: titan
+  - /container: jupiter_titan
+  - /slurm: jupiter
+  - /cluster: jupiter
+  - /data: nemotron_neox
+  - /job: default
+  - /sweep: none
+  - _self_
+
+index: 0   # replaced per sweep point
+stage: ""  # replaced per sweep point

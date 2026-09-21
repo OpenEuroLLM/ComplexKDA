@@ -1,0 +1,47 @@
+# FineWeb-Edu `sample-100BT` under the Llama-2 tokenizer: what Gated DeltaNet's
+# 1.3B/100BT table trained on (arXiv:2412.06464), at its context.
+#
+# Staged by lm_scaling/data/prepare_fineweb_edu.py. When this was written
+# (2026-09-11) JUPITER held FineWeb-Edu in no tokenization at all -- not under
+# /e/data1/datasets, and not at the gpt-neox-20b path oellm-autoexp's
+# data_fineweb.yaml names under /e/project1/jureap59, which no longer exists.
+class_name: Data
+name: fineweb_edu_100bt_llama2
+format: megatron_indexed
+
+# LLAMA-2, and NOT the tokenizer fla-hub ships beside its `*-1.3B-100B`
+# checkpoints. That one is Mistral's -- "Hello world." is 22557 1526 28723
+# there and 15043 3186 29889 here -- from the GLA/DeltaNet recipe on
+# SlimPajama, and flame's README loads it for FineWeb-Edu too. The FineWeb-Edu
+# table says Llama 2.
+#
+# `hf-internal-testing/llama-tokenizer`, because meta-llama's repo is gated:
+# the same vocabulary as Llama-2-7b's, and the same ids on 600 FineWeb-Edu
+# documents as the SentencePiece model GDN's own tokenizer runs. It splits
+# every number into single digits -- the only multi-digit entries in its
+# vocabulary are the byte fallbacks <0x00>..<0xFF>.
+#
+# Documents end in `</s>` (id 2) with no BOS in front: GDN's
+# `Tokenizer.encode` defaults, and the same convention as our NeoX corpora.
+tokenizer: hf-internal-testing/llama-tokenizer
+vocab_size: 32000
+
+prefix: ${oc.env:FWEDU_CORPUS,/e/scratch/e-sta-openeurollm/poeppel1/datasets/fineweb-edu-100BT-llama2}/splits/train
+valid_prefix: ${oc.env:FWEDU_CORPUS,/e/scratch/e-sta-openeurollm/poeppel1/datasets/fineweb-edu-100BT-llama2}/splits/valid
+
+# Read off the staged splits' headers (2026-09-11). They switch on two checks:
+# verify_corpus.py compares them with the files, and plan.check refuses a run
+# longer than its corpus -- the reader would wrap around and repeat it without
+# a word. 97,257,016 train and 13,670 held-out documents, all 97,270,686 of
+# sample-100BT; 100BT is one pass with 14.7% to spare.
+train_tokens: 114841055675
+valid_tokens: 16367254
+
+seq_len: 4096
+# UNTIED, as the published 1.3B models are (fla-hub's config.json; GDN's
+# lit_gpt keeps lm_head and wte apart as well).
+tie_embeddings: false
+
+# As nemotron_neox: 2,560 x 4096 = 10.5M tokens per validation. The held-out
+# split is 16M tokens drawn from every shard, so most of it is scored.
+eval_sequences: 2560

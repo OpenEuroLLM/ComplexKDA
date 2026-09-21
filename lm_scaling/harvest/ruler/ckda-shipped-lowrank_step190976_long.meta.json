@@ -1,0 +1,12 @@
+{
+  "model": "/e/scratch/e-sta-openeurollm/poeppel1/eval_fwedu/export/ckda-shipped-lowrank_step190976",
+  "tokenizer": "/e/scratch/e-sta-openeurollm/poeppel1/datasets/fineweb-edu-100BT-llama2/tokenizer",
+  "tasks": [
+    "niah_single_1",
+    "niah_single_2"
+  ],
+  "context_prefix": "none",
+  "context_prefix_ids": [],
+  "max_length": 8192,
+  "limit": null
+}

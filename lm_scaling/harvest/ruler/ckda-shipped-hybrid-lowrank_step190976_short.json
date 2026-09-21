@@ -1,0 +1,20 @@
+{
+  "niah_multikey_1": {
+    "alias": "niah_multikey_1",
+    "4096,none": 0.944,
+    "4096_stderr,none": "N/A",
+    "1024,none": 0.95,
+    "1024_stderr,none": "N/A",
+    "2048,none": 0.944,
+    "2048_stderr,none": "N/A"
+  },
+  "niah_single_3": {
+    "alias": "niah_single_3",
+    "4096,none": 0.868,
+    "4096_stderr,none": "N/A",
+    "1024,none": 0.976,
+    "1024_stderr,none": "N/A",
+    "2048,none": 0.91,
+    "2048_stderr,none": "N/A"
+  }
+}

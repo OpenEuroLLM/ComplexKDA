@@ -1,0 +1,59 @@
+# Measured throughput, TFLOP/s per GPU. Data only; the lookup is throughput.py.
+#
+# Sections are keyed `<gpu>_seq<context>_<stack>_g<world GPUs>` because all
+# four dimensions change the answer and none can be inferred from the others.
+#
+# Every entry is `arch|rung: {micro_batch: tflops}` under the convention
+# `6 * N_non_embedding * tokens`, which is the one comparable across papers.
+# A cell that OOM'd is absent rather than zero: absent means "not measured",
+# and a zero would be read as a measurement.
+#
+# This is the REPORTING table. Wall clock is priced from token_rate.yaml
+# instead -- see its header for why a rate must not round-trip through FLOPs.
+
+gh200_seq4096_titan_g4:
+  # 1.3B (replication_1p3B.json), measured at the campaign's own geometry.
+  kda-sig-lowrank|1.3B: {1: 115.6, 2: 240.8, 4: 348.9}
+  ckda-shipped-lowrank|1.3B: {1: 136.4, 2: 196.8, 4: 328.0}
+  kda-sig-hybrid-lowrank|1.3B: {1: 158.7, 2: 291.0, 4: 352.6}
+  ckda-shipped-hybrid-lowrank|1.3B: {1: 148.7, 2: 256.2, 4: 344.3}
+
+  # --- the scaling ladder's six rungs -------------------------------------
+  # Measured the same way, by titan_mbs_probe.py, at each rung's own
+  # geometry. A missing entry RAISES rather than interpolating.
+  attn|47M: {1: 32.2, 2: 40.4, 4: 125.6, 8: 212.5, 16: 256.6}
+  attn|124M: {1: 54.4, 2: 79.3, 4: 159.1, 8: 278.0, 16: 302.7}
+  attn|302M: {1: 90.5, 2: 209.0, 4: 309.0, 8: 312.9, 16: 318.2}
+  attn|588M: {1: 184.2, 2: 319.4, 4: 360.2, 8: 374.8}
+  attn|983M: {1: 185.7, 2: 342.8, 4: 365.8, 8: 386.6}
+  attn|1.7B: {1: 320.9, 2: 374.4, 4: 400.8, 8: 423.5}
+  gdn|47M: {1: 15.0, 2: 24.1, 4: 66.7, 8: 114.7, 16: 210.7}
+  gdn|124M: {1: 28.1, 2: 48.5, 4: 95.7, 8: 223.8, 16: 297.1}
+  gdn|302M: {1: 45.2, 2: 110.0, 4: 190.5, 8: 325.6, 16: 352.5}
+  gdn|588M: {1: 89.3, 2: 161.0, 4: 309.7, 8: 377.7}
+  gdn|983M: {1: 117.6, 2: 212.9, 4: 373.5, 8: 401.1}
+  gdn|1.7B: {1: 196.7, 2: 343.7, 4: 417.1}
+  kda-sig-lowrank|47M: {1: 12.1, 2: 29.6, 4: 58.9, 8: 114.4, 16: 196.5}
+  kda-sig-lowrank|124M: {1: 20.4, 2: 46.8, 4: 77.7, 8: 184.9, 16: 248.7}
+  kda-sig-lowrank|302M: {1: 46.6, 2: 89.0, 4: 176.8, 8: 270.6}
+  kda-sig-lowrank|588M: {1: 81.1, 2: 137.4, 4: 256.4, 8: 331.1}
+  kda-sig-lowrank|983M: {1: 109.8, 2: 181.3, 4: 312.3}
+  kda-sig-lowrank|1.7B: {1: 173.1, 2: 290.9, 4: 373.6}
+  ckda-shipped-lowrank|47M: {1: 11.7, 2: 27.9, 4: 44.2, 8: 84.8, 16: 176.8}
+  ckda-shipped-lowrank|124M: {1: 21.4, 2: 44.7, 4: 87.4, 8: 166.0, 16: 241.1}
+  ckda-shipped-lowrank|302M: {1: 32.0, 2: 87.1, 4: 172.4, 8: 261.2}
+  ckda-shipped-lowrank|588M: {1: 73.9, 2: 152.6, 4: 267.3, 8: 303.4}
+  ckda-shipped-lowrank|983M: {1: 106.1, 2: 175.7, 4: 294.1}
+  ckda-shipped-lowrank|1.7B: {1: 128.8, 2: 283.1, 4: 360.0}
+  kda-sig-hybrid-lowrank|47M: {1: 16.2, 2: 32.8, 4: 61.2, 8: 110.1, 16: 202.8}
+  kda-sig-hybrid-lowrank|124M: {1: 27.7, 2: 54.5, 4: 88.5, 8: 173.0, 16: 260.2}
+  kda-sig-hybrid-lowrank|302M: {1: 50.8, 2: 97.5, 4: 171.2, 8: 283.2, 16: 316.8}
+  kda-sig-hybrid-lowrank|588M: {1: 89.4, 2: 177.6, 4: 294.8, 8: 344.9}
+  kda-sig-hybrid-lowrank|983M: {1: 96.2, 2: 237.4, 4: 337.3, 8: 367.0}
+  kda-sig-hybrid-lowrank|1.7B: {1: 176.6, 2: 326.0, 4: 381.3}
+  ckda-shipped-hybrid-lowrank|47M: {1: 13.4, 2: 26.1, 4: 64.3, 8: 127.2, 16: 202.7}
+  ckda-shipped-hybrid-lowrank|124M: {1: 25.7, 2: 50.2, 4: 100.0, 8: 198.9, 16: 247.6}
+  ckda-shipped-hybrid-lowrank|302M: {1: 49.8, 2: 88.1, 4: 202.7, 8: 280.8}
+  ckda-shipped-hybrid-lowrank|588M: {1: 92.0, 2: 150.9, 4: 268.1, 8: 330.6}
+  ckda-shipped-hybrid-lowrank|983M: {1: 106.7, 2: 208.8, 4: 314.7}
+  ckda-shipped-hybrid-lowrank|1.7B: {1: 198.5, 2: 318.1, 4: 365.9}

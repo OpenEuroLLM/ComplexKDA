@@ -1,0 +1,17 @@
+{
+  "fda": {
+    "alias": "fda",
+    "contains,none": 0.588929219600726,
+    "contains_stderr,none": "N/A"
+  },
+  "squad_completion": {
+    "alias": "squad_completion",
+    "contains,none": 0.3776809651474531,
+    "contains_stderr,none": "N/A"
+  },
+  "swde": {
+    "alias": "swde",
+    "contains,none": 0.639063906390639,
+    "contains_stderr,none": "N/A"
+  }
+}

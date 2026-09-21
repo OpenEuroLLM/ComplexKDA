@@ -1,0 +1,25 @@
+# The torchtitan image on JUPITER: what to enter, and what to mount into it.
+#
+# Environment goes in `slurm.env`, not here: apptainer inherits the batch
+# shell's environment, and one list is easier to keep true than two.
+class_name: Container
+image: ${oc.env:CONTAINER_DIR,/e/project1/e-sta-openeurollm/container}/titan_0.2.1_aarch64_202603131435.sif
+runtime: apptainer
+args: ["--nv", "--writable-tmpfs"]
+bind:
+  - /e
+  - /dev/shm
+  # libcuda and libnvidia-ml come from the HOST, not the image. Without these
+  # two binds every rank fails with "Found no NVIDIA driver on your system",
+  # which reads like a driver or hardware fault and is neither.
+  - /usr/lib64/libcuda.so.1:/opt/nvidia/lib/libcuda.so.1:ro
+  - /usr/lib64/libnvidia-ml.so.1:/opt/nvidia/lib/libnvidia-ml.so.1:ro
+# The orchestration libraries -- hydra_staged_sweep, slurm_gen, monitor --
+# read-only, so every job can mount the same file. Built by
+# lm_scaling/data/make_overlay.sh; not needed for TRAINING, which uses only
+# what the image already ships plus the repo on PYTHONPATH.
+overlays:
+  - ${oc.env:CONTAINER_CACHE_DIR,/e/project1/e-sta-openeurollm/container}/autoexp_overlay.img
+
+env: {}
+python: python3

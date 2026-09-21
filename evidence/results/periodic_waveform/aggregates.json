@@ -1,0 +1,1245 @@
+{
+  "kind": "periodic_waveform",
+  "models": {
+    "a01_b01": {
+      "seeds": [
+        0
+      ],
+      "per_seed": [
+        {
+          "task": "four_on_floor_waveform_frame_continuation",
+          "model": "a01_b01",
+          "seed": 0,
+          "gate": "sigmoid",
+          "allow_neg_eigval": false,
+          "gate_init_style": "shipped",
+          "beta_init_style": "standard",
+          "period_steps": 32,
+          "frame_size": 64,
+          "source_sample_rate": 4096,
+          "prefix_steps": 8,
+          "steps": 2500,
+          "batch": 64,
+          "d_model": 128,
+          "heads": 8,
+          "head_dim": 16,
+          "trainable_parameters": 182040,
+          "optimizer": "muon",
+          "scheduler": "warmup_cosine",
+          "warmup_steps": 250,
+          "min_lr_ratio": 0.1,
+          "muon_lr": 0.02,
+          "muon_scope": "core",
+          "init": "default",
+          "freeze_transition": false,
+          "curriculum_final_length": 136,
+          "curriculum_mode": "scheduled",
+          "curriculum_fraction": 0.4,
+          "curriculum_history": [
+            {
+              "length": 16,
+              "step": 168,
+              "reason": "schedule"
+            },
+            {
+              "length": 24,
+              "step": 335,
+              "reason": "schedule"
+            },
+            {
+              "length": 40,
+              "step": 501,
+              "reason": "schedule"
+            },
+            {
+              "length": 72,
+              "step": 668,
+              "reason": "schedule"
+            },
+            {
+              "length": 136,
+              "step": 835,
+              "reason": "schedule"
+            }
+          ],
+          "metrics": {
+            "40": {
+              "normalized_mse": 0.37145841121673584,
+              "tail_normalized_mse": 0.7684201598167419,
+              "waveform_mse": 0.013424668461084366,
+              "waveform_snr_db": 5.177684307098389
+            },
+            "136": {
+              "normalized_mse": 0.8171191811561584,
+              "tail_normalized_mse": 0.9644814729690552,
+              "waveform_mse": 0.02955160290002823,
+              "waveform_snr_db": 1.7509101629257202
+            },
+            "264": {
+              "normalized_mse": 2.1421775817871094,
+              "tail_normalized_mse": 4.572834491729736,
+              "waveform_mse": 0.08248031884431839,
+              "waveform_snr_db": -2.706782817840576
+            }
+          },
+          "checkpoint": "audio_toys/checkpoints/groove_waveform_d128_h8_hd16_all_core_cosine/groove-waveform-a01_b01-seed0.pt",
+          "seconds": 720.7
+        }
+      ],
+      "aggregate": {
+        "40": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.37145841121673584,
+            "sample_std": 0.0,
+            "minimum": 0.37145841121673584,
+            "maximum": 0.37145841121673584
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.7684201598167419,
+            "sample_std": 0.0,
+            "minimum": 0.7684201598167419,
+            "maximum": 0.7684201598167419
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.013424668461084366,
+            "sample_std": 0.0,
+            "minimum": 0.013424668461084366,
+            "maximum": 0.013424668461084366
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 5.177684307098389,
+            "sample_std": 0.0,
+            "minimum": 5.177684307098389,
+            "maximum": 5.177684307098389
+          }
+        },
+        "136": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.8171191811561584,
+            "sample_std": 0.0,
+            "minimum": 0.8171191811561584,
+            "maximum": 0.8171191811561584
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.9644814729690552,
+            "sample_std": 0.0,
+            "minimum": 0.9644814729690552,
+            "maximum": 0.9644814729690552
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.02955160290002823,
+            "sample_std": 0.0,
+            "minimum": 0.02955160290002823,
+            "maximum": 0.02955160290002823
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 1.7509101629257202,
+            "sample_std": 0.0,
+            "minimum": 1.7509101629257202,
+            "maximum": 1.7509101629257202
+          }
+        },
+        "264": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 2.1421775817871094,
+            "sample_std": 0.0,
+            "minimum": 2.1421775817871094,
+            "maximum": 2.1421775817871094
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 4.572834491729736,
+            "sample_std": 0.0,
+            "minimum": 4.572834491729736,
+            "maximum": 4.572834491729736
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.08248031884431839,
+            "sample_std": 0.0,
+            "minimum": 0.08248031884431839,
+            "maximum": 0.08248031884431839
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": -2.706782817840576,
+            "sample_std": 0.0,
+            "minimum": -2.706782817840576,
+            "maximum": -2.706782817840576
+          }
+        }
+      }
+    },
+    "a01_b02": {
+      "seeds": [
+        0
+      ],
+      "per_seed": [
+        {
+          "task": "four_on_floor_waveform_frame_continuation",
+          "model": "a01_b02",
+          "seed": 0,
+          "gate": "sigmoid",
+          "allow_neg_eigval": true,
+          "gate_init_style": "shipped",
+          "beta_init_style": "spread",
+          "period_steps": 32,
+          "frame_size": 64,
+          "source_sample_rate": 4096,
+          "prefix_steps": 8,
+          "steps": 2500,
+          "batch": 64,
+          "d_model": 128,
+          "heads": 8,
+          "head_dim": 16,
+          "trainable_parameters": 182048,
+          "optimizer": "muon",
+          "scheduler": "warmup_cosine",
+          "warmup_steps": 250,
+          "min_lr_ratio": 0.1,
+          "muon_lr": 0.02,
+          "muon_scope": "core",
+          "init": "default",
+          "freeze_transition": false,
+          "curriculum_final_length": 136,
+          "curriculum_mode": "scheduled",
+          "curriculum_fraction": 0.4,
+          "curriculum_history": [
+            {
+              "length": 16,
+              "step": 168,
+              "reason": "schedule"
+            },
+            {
+              "length": 24,
+              "step": 335,
+              "reason": "schedule"
+            },
+            {
+              "length": 40,
+              "step": 501,
+              "reason": "schedule"
+            },
+            {
+              "length": 72,
+              "step": 668,
+              "reason": "schedule"
+            },
+            {
+              "length": 136,
+              "step": 835,
+              "reason": "schedule"
+            }
+          ],
+          "metrics": {
+            "40": {
+              "normalized_mse": 0.33752354979515076,
+              "tail_normalized_mse": 0.7440587878227234,
+              "waveform_mse": 0.011746727861464024,
+              "waveform_snr_db": 5.757551670074463
+            },
+            "136": {
+              "normalized_mse": 0.6576536893844604,
+              "tail_normalized_mse": 0.7627586722373962,
+              "waveform_mse": 0.022855909541249275,
+              "waveform_snr_db": 2.8667354583740234
+            },
+            "264": {
+              "normalized_mse": 0.7761146426200867,
+              "tail_normalized_mse": 0.9646335244178772,
+              "waveform_mse": 0.0272207111120224,
+              "waveform_snr_db": 2.1077263355255127
+            }
+          },
+          "checkpoint": "audio_toys/checkpoints/groove_waveform_d128_h8_hd16_all_core_cosine/groove-waveform-a01_b02-seed0.pt",
+          "seconds": 613.3
+        }
+      ],
+      "aggregate": {
+        "40": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.33752354979515076,
+            "sample_std": 0.0,
+            "minimum": 0.33752354979515076,
+            "maximum": 0.33752354979515076
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.7440587878227234,
+            "sample_std": 0.0,
+            "minimum": 0.7440587878227234,
+            "maximum": 0.7440587878227234
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.011746727861464024,
+            "sample_std": 0.0,
+            "minimum": 0.011746727861464024,
+            "maximum": 0.011746727861464024
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 5.757551670074463,
+            "sample_std": 0.0,
+            "minimum": 5.757551670074463,
+            "maximum": 5.757551670074463
+          }
+        },
+        "136": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.6576536893844604,
+            "sample_std": 0.0,
+            "minimum": 0.6576536893844604,
+            "maximum": 0.6576536893844604
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.7627586722373962,
+            "sample_std": 0.0,
+            "minimum": 0.7627586722373962,
+            "maximum": 0.7627586722373962
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.022855909541249275,
+            "sample_std": 0.0,
+            "minimum": 0.022855909541249275,
+            "maximum": 0.022855909541249275
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 2.8667354583740234,
+            "sample_std": 0.0,
+            "minimum": 2.8667354583740234,
+            "maximum": 2.8667354583740234
+          }
+        },
+        "264": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.7761146426200867,
+            "sample_std": 0.0,
+            "minimum": 0.7761146426200867,
+            "maximum": 0.7761146426200867
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.9646335244178772,
+            "sample_std": 0.0,
+            "minimum": 0.9646335244178772,
+            "maximum": 0.9646335244178772
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.0272207111120224,
+            "sample_std": 0.0,
+            "minimum": 0.0272207111120224,
+            "maximum": 0.0272207111120224
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 2.1077263355255127,
+            "sample_std": 0.0,
+            "minimum": 2.1077263355255127,
+            "maximum": 2.1077263355255127
+          }
+        }
+      }
+    },
+    "a11_b01": {
+      "seeds": [
+        0
+      ],
+      "per_seed": [
+        {
+          "task": "four_on_floor_waveform_frame_continuation",
+          "model": "a11_b01",
+          "seed": 0,
+          "gate": "signed_sigmoid2",
+          "allow_neg_eigval": false,
+          "gate_init_style": "spread",
+          "beta_init_style": "standard",
+          "period_steps": 32,
+          "frame_size": 64,
+          "source_sample_rate": 4096,
+          "prefix_steps": 8,
+          "steps": 2500,
+          "batch": 64,
+          "d_model": 128,
+          "heads": 8,
+          "head_dim": 16,
+          "trainable_parameters": 182040,
+          "optimizer": "muon",
+          "scheduler": "warmup_cosine",
+          "warmup_steps": 250,
+          "min_lr_ratio": 0.1,
+          "muon_lr": 0.02,
+          "muon_scope": "core",
+          "init": "default",
+          "freeze_transition": false,
+          "curriculum_final_length": 136,
+          "curriculum_mode": "scheduled",
+          "curriculum_fraction": 0.4,
+          "curriculum_history": [
+            {
+              "length": 16,
+              "step": 168,
+              "reason": "schedule"
+            },
+            {
+              "length": 24,
+              "step": 335,
+              "reason": "schedule"
+            },
+            {
+              "length": 40,
+              "step": 501,
+              "reason": "schedule"
+            },
+            {
+              "length": 72,
+              "step": 668,
+              "reason": "schedule"
+            },
+            {
+              "length": 136,
+              "step": 835,
+              "reason": "schedule"
+            }
+          ],
+          "metrics": {
+            "40": {
+              "normalized_mse": 0.1976000815629959,
+              "tail_normalized_mse": 0.4035685062408447,
+              "waveform_mse": 0.006917873397469521,
+              "waveform_snr_db": 8.056994438171387
+            },
+            "136": {
+              "normalized_mse": 0.6102062463760376,
+              "tail_normalized_mse": 0.7613146305084229,
+              "waveform_mse": 0.021219506859779358,
+              "waveform_snr_db": 3.1893677711486816
+            },
+            "264": {
+              "normalized_mse": 1.4422550201416016,
+              "tail_normalized_mse": 2.9211719036102295,
+              "waveform_mse": 0.05149554833769798,
+              "waveform_snr_db": -0.6609760522842407
+            }
+          },
+          "checkpoint": "audio_toys/checkpoints/groove_waveform_d128_h8_hd16_all_core_cosine/groove-waveform-a11_b01-seed0.pt",
+          "seconds": 559.1
+        }
+      ],
+      "aggregate": {
+        "40": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.1976000815629959,
+            "sample_std": 0.0,
+            "minimum": 0.1976000815629959,
+            "maximum": 0.1976000815629959
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.4035685062408447,
+            "sample_std": 0.0,
+            "minimum": 0.4035685062408447,
+            "maximum": 0.4035685062408447
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.006917873397469521,
+            "sample_std": 0.0,
+            "minimum": 0.006917873397469521,
+            "maximum": 0.006917873397469521
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 8.056994438171387,
+            "sample_std": 0.0,
+            "minimum": 8.056994438171387,
+            "maximum": 8.056994438171387
+          }
+        },
+        "136": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.6102062463760376,
+            "sample_std": 0.0,
+            "minimum": 0.6102062463760376,
+            "maximum": 0.6102062463760376
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.7613146305084229,
+            "sample_std": 0.0,
+            "minimum": 0.7613146305084229,
+            "maximum": 0.7613146305084229
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.021219506859779358,
+            "sample_std": 0.0,
+            "minimum": 0.021219506859779358,
+            "maximum": 0.021219506859779358
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 3.1893677711486816,
+            "sample_std": 0.0,
+            "minimum": 3.1893677711486816,
+            "maximum": 3.1893677711486816
+          }
+        },
+        "264": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 1.4422550201416016,
+            "sample_std": 0.0,
+            "minimum": 1.4422550201416016,
+            "maximum": 1.4422550201416016
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 2.9211719036102295,
+            "sample_std": 0.0,
+            "minimum": 2.9211719036102295,
+            "maximum": 2.9211719036102295
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.05149554833769798,
+            "sample_std": 0.0,
+            "minimum": 0.05149554833769798,
+            "maximum": 0.05149554833769798
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": -0.6609760522842407,
+            "sample_std": 0.0,
+            "minimum": -0.6609760522842407,
+            "maximum": -0.6609760522842407
+          }
+        }
+      }
+    },
+    "a11_b02": {
+      "seeds": [
+        0
+      ],
+      "per_seed": [
+        {
+          "task": "four_on_floor_waveform_frame_continuation",
+          "model": "a11_b02",
+          "seed": 0,
+          "gate": "signed_sigmoid2",
+          "allow_neg_eigval": true,
+          "gate_init_style": "spread",
+          "beta_init_style": "spread",
+          "period_steps": 32,
+          "frame_size": 64,
+          "source_sample_rate": 4096,
+          "prefix_steps": 8,
+          "steps": 2500,
+          "batch": 64,
+          "d_model": 128,
+          "heads": 8,
+          "head_dim": 16,
+          "trainable_parameters": 182048,
+          "optimizer": "muon",
+          "scheduler": "warmup_cosine",
+          "warmup_steps": 250,
+          "min_lr_ratio": 0.1,
+          "muon_lr": 0.02,
+          "muon_scope": "core",
+          "init": "default",
+          "freeze_transition": false,
+          "curriculum_final_length": 136,
+          "curriculum_mode": "scheduled",
+          "curriculum_fraction": 0.4,
+          "curriculum_history": [
+            {
+              "length": 16,
+              "step": 168,
+              "reason": "schedule"
+            },
+            {
+              "length": 24,
+              "step": 335,
+              "reason": "schedule"
+            },
+            {
+              "length": 40,
+              "step": 501,
+              "reason": "schedule"
+            },
+            {
+              "length": 72,
+              "step": 668,
+              "reason": "schedule"
+            },
+            {
+              "length": 136,
+              "step": 835,
+              "reason": "schedule"
+            }
+          ],
+          "metrics": {
+            "40": {
+              "normalized_mse": 3.1942399800755084e-05,
+              "tail_normalized_mse": 3.406514224479906e-05,
+              "waveform_mse": 1.2118956647100276e-06,
+              "waveform_snr_db": 45.622066497802734
+            },
+            "136": {
+              "normalized_mse": 7.363486656686291e-05,
+              "tail_normalized_mse": 0.00013615626085083932,
+              "waveform_mse": 2.6472462195670232e-06,
+              "waveform_snr_db": 42.22877883911133
+            },
+            "264": {
+              "normalized_mse": 0.00019370504014659673,
+              "tail_normalized_mse": 0.00038250378565862775,
+              "waveform_mse": 6.905848294991301e-06,
+              "waveform_snr_db": 38.064552307128906
+            }
+          },
+          "checkpoint": "audio_toys/checkpoints/groove_waveform_d128_h8_hd16_all_core_cosine/groove-waveform-a11_b02-seed0.pt",
+          "seconds": 588.6
+        }
+      ],
+      "aggregate": {
+        "40": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 3.1942399800755084e-05,
+            "sample_std": 0.0,
+            "minimum": 3.1942399800755084e-05,
+            "maximum": 3.1942399800755084e-05
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 3.406514224479906e-05,
+            "sample_std": 0.0,
+            "minimum": 3.406514224479906e-05,
+            "maximum": 3.406514224479906e-05
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 1.2118956647100276e-06,
+            "sample_std": 0.0,
+            "minimum": 1.2118956647100276e-06,
+            "maximum": 1.2118956647100276e-06
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 45.622066497802734,
+            "sample_std": 0.0,
+            "minimum": 45.622066497802734,
+            "maximum": 45.622066497802734
+          }
+        },
+        "136": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 7.363486656686291e-05,
+            "sample_std": 0.0,
+            "minimum": 7.363486656686291e-05,
+            "maximum": 7.363486656686291e-05
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.00013615626085083932,
+            "sample_std": 0.0,
+            "minimum": 0.00013615626085083932,
+            "maximum": 0.00013615626085083932
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 2.6472462195670232e-06,
+            "sample_std": 0.0,
+            "minimum": 2.6472462195670232e-06,
+            "maximum": 2.6472462195670232e-06
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 42.22877883911133,
+            "sample_std": 0.0,
+            "minimum": 42.22877883911133,
+            "maximum": 42.22877883911133
+          }
+        },
+        "264": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.00019370504014659673,
+            "sample_std": 0.0,
+            "minimum": 0.00019370504014659673,
+            "maximum": 0.00019370504014659673
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.00038250378565862775,
+            "sample_std": 0.0,
+            "minimum": 0.00038250378565862775,
+            "maximum": 0.00038250378565862775
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 6.905848294991301e-06,
+            "sample_std": 0.0,
+            "minimum": 6.905848294991301e-06,
+            "maximum": 6.905848294991301e-06
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 38.064552307128906,
+            "sample_std": 0.0,
+            "minimum": 38.064552307128906,
+            "maximum": 38.064552307128906
+          }
+        }
+      }
+    },
+    "gru": {
+      "seeds": [
+        0
+      ],
+      "per_seed": [
+        {
+          "task": "four_on_floor_waveform_frame_continuation",
+          "model": "gru",
+          "seed": 0,
+          "gate_init_style": null,
+          "beta_init_style": null,
+          "period_steps": 32,
+          "frame_size": 64,
+          "source_sample_rate": 4096,
+          "prefix_steps": 8,
+          "steps": 2500,
+          "batch": 64,
+          "d_model": 128,
+          "heads": 8,
+          "head_dim": 16,
+          "trainable_parameters": 206080,
+          "optimizer": "muon",
+          "scheduler": "warmup_cosine",
+          "warmup_steps": 250,
+          "min_lr_ratio": 0.1,
+          "muon_lr": 0.02,
+          "muon_scope": "core",
+          "init": "pytorch_default",
+          "freeze_transition": false,
+          "curriculum_final_length": 136,
+          "curriculum_mode": "scheduled",
+          "curriculum_fraction": 0.4,
+          "curriculum_history": [
+            {
+              "length": 16,
+              "step": 168,
+              "reason": "schedule"
+            },
+            {
+              "length": 24,
+              "step": 335,
+              "reason": "schedule"
+            },
+            {
+              "length": 40,
+              "step": 501,
+              "reason": "schedule"
+            },
+            {
+              "length": 72,
+              "step": 668,
+              "reason": "schedule"
+            },
+            {
+              "length": 136,
+              "step": 835,
+              "reason": "schedule"
+            }
+          ],
+          "metrics": {
+            "40": {
+              "normalized_mse": 6.226937188102966e-08,
+              "tail_normalized_mse": 5.8405966285590694e-08,
+              "waveform_mse": 2.308490287816767e-09,
+              "waveform_snr_db": 72.82344055175781
+            },
+            "136": {
+              "normalized_mse": 5.937230795893811e-08,
+              "tail_normalized_mse": 5.8406225633689246e-08,
+              "waveform_mse": 2.2048034509225545e-09,
+              "waveform_snr_db": 73.02302551269531
+            },
+            "264": {
+              "normalized_mse": 5.8889391141292435e-08,
+              "tail_normalized_mse": 5.8406524061638265e-08,
+              "waveform_mse": 2.1875243838564984e-09,
+              "waveform_snr_db": 73.05718994140625
+            }
+          },
+          "checkpoint": "audio_toys/checkpoints/groove_waveform_d128_h8_hd16_all_core_cosine/groove-waveform-gru-seed0.pt",
+          "seconds": 105.1
+        }
+      ],
+      "aggregate": {
+        "40": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 6.226937188102966e-08,
+            "sample_std": 0.0,
+            "minimum": 6.226937188102966e-08,
+            "maximum": 6.226937188102966e-08
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 5.8405966285590694e-08,
+            "sample_std": 0.0,
+            "minimum": 5.8405966285590694e-08,
+            "maximum": 5.8405966285590694e-08
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 2.308490287816767e-09,
+            "sample_std": 0.0,
+            "minimum": 2.308490287816767e-09,
+            "maximum": 2.308490287816767e-09
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 72.82344055175781,
+            "sample_std": 0.0,
+            "minimum": 72.82344055175781,
+            "maximum": 72.82344055175781
+          }
+        },
+        "136": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 5.937230795893811e-08,
+            "sample_std": 0.0,
+            "minimum": 5.937230795893811e-08,
+            "maximum": 5.937230795893811e-08
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 5.8406225633689246e-08,
+            "sample_std": 0.0,
+            "minimum": 5.8406225633689246e-08,
+            "maximum": 5.8406225633689246e-08
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 2.2048034509225545e-09,
+            "sample_std": 0.0,
+            "minimum": 2.2048034509225545e-09,
+            "maximum": 2.2048034509225545e-09
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 73.02302551269531,
+            "sample_std": 0.0,
+            "minimum": 73.02302551269531,
+            "maximum": 73.02302551269531
+          }
+        },
+        "264": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 5.8889391141292435e-08,
+            "sample_std": 0.0,
+            "minimum": 5.8889391141292435e-08,
+            "maximum": 5.8889391141292435e-08
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 5.8406524061638265e-08,
+            "sample_std": 0.0,
+            "minimum": 5.8406524061638265e-08,
+            "maximum": 5.8406524061638265e-08
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 2.1875243838564984e-09,
+            "sample_std": 0.0,
+            "minimum": 2.1875243838564984e-09,
+            "maximum": 2.1875243838564984e-09
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 73.05718994140625,
+            "sample_std": 0.0,
+            "minimum": 73.05718994140625,
+            "maximum": 73.05718994140625
+          }
+        }
+      }
+    },
+    "transformer": {
+      "seeds": [
+        0
+      ],
+      "per_seed": [
+        {
+          "task": "four_on_floor_waveform_frame_continuation",
+          "model": "transformer",
+          "seed": 0,
+          "gate_init_style": null,
+          "beta_init_style": null,
+          "period_steps": 32,
+          "frame_size": 64,
+          "source_sample_rate": 4096,
+          "prefix_steps": 8,
+          "steps": 2500,
+          "batch": 64,
+          "d_model": 128,
+          "heads": 8,
+          "head_dim": 16,
+          "trainable_parameters": 206592,
+          "optimizer": "muon",
+          "scheduler": "warmup_cosine",
+          "warmup_steps": 250,
+          "min_lr_ratio": 0.1,
+          "muon_lr": 0.02,
+          "muon_scope": "core",
+          "init": "sinusoidal",
+          "freeze_transition": false,
+          "curriculum_final_length": 136,
+          "curriculum_mode": "scheduled",
+          "curriculum_fraction": 0.4,
+          "curriculum_history": [
+            {
+              "length": 16,
+              "step": 168,
+              "reason": "schedule"
+            },
+            {
+              "length": 24,
+              "step": 335,
+              "reason": "schedule"
+            },
+            {
+              "length": 40,
+              "step": 501,
+              "reason": "schedule"
+            },
+            {
+              "length": 72,
+              "step": 668,
+              "reason": "schedule"
+            },
+            {
+              "length": 136,
+              "step": 835,
+              "reason": "schedule"
+            }
+          ],
+          "metrics": {
+            "40": {
+              "normalized_mse": 0.00012592898565344512,
+              "tail_normalized_mse": 0.00012006438191747293,
+              "waveform_mse": 4.634190190699883e-06,
+              "waveform_snr_db": 39.79698181152344
+            },
+            "136": {
+              "normalized_mse": 0.00012767726730089635,
+              "tail_normalized_mse": 0.00012809185136575252,
+              "waveform_mse": 4.669137069868157e-06,
+              "waveform_snr_db": 39.76435852050781
+            },
+            "264": {
+              "normalized_mse": 0.645458459854126,
+              "tail_normalized_mse": 1.2758359909057617,
+              "waveform_mse": 0.02308747172355652,
+              "waveform_snr_db": 2.8229570388793945
+            }
+          },
+          "checkpoint": "audio_toys/checkpoints/groove_waveform_d128_h8_hd16_all_core_cosine/groove-waveform-transformer-seed0.pt",
+          "seconds": 123.1
+        }
+      ],
+      "aggregate": {
+        "40": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.00012592898565344512,
+            "sample_std": 0.0,
+            "minimum": 0.00012592898565344512,
+            "maximum": 0.00012592898565344512
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.00012006438191747293,
+            "sample_std": 0.0,
+            "minimum": 0.00012006438191747293,
+            "maximum": 0.00012006438191747293
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 4.634190190699883e-06,
+            "sample_std": 0.0,
+            "minimum": 4.634190190699883e-06,
+            "maximum": 4.634190190699883e-06
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 39.79698181152344,
+            "sample_std": 0.0,
+            "minimum": 39.79698181152344,
+            "maximum": 39.79698181152344
+          }
+        },
+        "136": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.00012767726730089635,
+            "sample_std": 0.0,
+            "minimum": 0.00012767726730089635,
+            "maximum": 0.00012767726730089635
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.00012809185136575252,
+            "sample_std": 0.0,
+            "minimum": 0.00012809185136575252,
+            "maximum": 0.00012809185136575252
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 4.669137069868157e-06,
+            "sample_std": 0.0,
+            "minimum": 4.669137069868157e-06,
+            "maximum": 4.669137069868157e-06
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 39.76435852050781,
+            "sample_std": 0.0,
+            "minimum": 39.76435852050781,
+            "maximum": 39.76435852050781
+          }
+        },
+        "264": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.645458459854126,
+            "sample_std": 0.0,
+            "minimum": 0.645458459854126,
+            "maximum": 0.645458459854126
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 1.2758359909057617,
+            "sample_std": 0.0,
+            "minimum": 1.2758359909057617,
+            "maximum": 1.2758359909057617
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.02308747172355652,
+            "sample_std": 0.0,
+            "minimum": 0.02308747172355652,
+            "maximum": 0.02308747172355652
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 2.8229570388793945,
+            "sample_std": 0.0,
+            "minimum": 2.8229570388793945,
+            "maximum": 2.8229570388793945
+          }
+        }
+      }
+    },
+    "transformer_noncausal": {
+      "seeds": [
+        0
+      ],
+      "per_seed": [
+        {
+          "task": "four_on_floor_waveform_frame_continuation",
+          "model": "transformer_noncausal",
+          "seed": 0,
+          "gate_init_style": null,
+          "beta_init_style": null,
+          "period_steps": 32,
+          "frame_size": 64,
+          "source_sample_rate": 4096,
+          "prefix_steps": 8,
+          "steps": 2500,
+          "batch": 64,
+          "d_model": 128,
+          "heads": 8,
+          "head_dim": 16,
+          "trainable_parameters": 206592,
+          "optimizer": "muon",
+          "scheduler": "warmup_cosine",
+          "warmup_steps": 250,
+          "min_lr_ratio": 0.1,
+          "muon_lr": 0.02,
+          "muon_scope": "core",
+          "init": "sinusoidal",
+          "freeze_transition": false,
+          "curriculum_final_length": 136,
+          "curriculum_mode": "scheduled",
+          "curriculum_fraction": 0.4,
+          "curriculum_history": [
+            {
+              "length": 16,
+              "step": 168,
+              "reason": "schedule"
+            },
+            {
+              "length": 24,
+              "step": 335,
+              "reason": "schedule"
+            },
+            {
+              "length": 40,
+              "step": 501,
+              "reason": "schedule"
+            },
+            {
+              "length": 72,
+              "step": 668,
+              "reason": "schedule"
+            },
+            {
+              "length": 136,
+              "step": 835,
+              "reason": "schedule"
+            }
+          ],
+          "metrics": {
+            "40": {
+              "normalized_mse": 0.030282916501164436,
+              "tail_normalized_mse": 0.01744522526860237,
+              "waveform_mse": 0.001130480202846229,
+              "waveform_snr_db": 15.924091339111328
+            },
+            "136": {
+              "normalized_mse": 0.00015863018052186817,
+              "tail_normalized_mse": 0.00016879943723324686,
+              "waveform_mse": 5.786355359305162e-06,
+              "waveform_snr_db": 38.83266830444336
+            },
+            "264": {
+              "normalized_mse": 0.9110643267631531,
+              "tail_normalized_mse": 1.3020695447921753,
+              "waveform_mse": 0.032333265990018845,
+              "waveform_snr_db": 1.3602252006530762
+            }
+          },
+          "checkpoint": "audio_toys/checkpoints/groove_waveform_d128_h8_hd16_all_core_cosine/groove-waveform-transformer_noncausal-seed0.pt",
+          "seconds": 105.1
+        }
+      ],
+      "aggregate": {
+        "40": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.030282916501164436,
+            "sample_std": 0.0,
+            "minimum": 0.030282916501164436,
+            "maximum": 0.030282916501164436
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.01744522526860237,
+            "sample_std": 0.0,
+            "minimum": 0.01744522526860237,
+            "maximum": 0.01744522526860237
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.001130480202846229,
+            "sample_std": 0.0,
+            "minimum": 0.001130480202846229,
+            "maximum": 0.001130480202846229
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 15.924091339111328,
+            "sample_std": 0.0,
+            "minimum": 15.924091339111328,
+            "maximum": 15.924091339111328
+          }
+        },
+        "136": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.00015863018052186817,
+            "sample_std": 0.0,
+            "minimum": 0.00015863018052186817,
+            "maximum": 0.00015863018052186817
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 0.00016879943723324686,
+            "sample_std": 0.0,
+            "minimum": 0.00016879943723324686,
+            "maximum": 0.00016879943723324686
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 5.786355359305162e-06,
+            "sample_std": 0.0,
+            "minimum": 5.786355359305162e-06,
+            "maximum": 5.786355359305162e-06
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 38.83266830444336,
+            "sample_std": 0.0,
+            "minimum": 38.83266830444336,
+            "maximum": 38.83266830444336
+          }
+        },
+        "264": {
+          "normalized_mse": {
+            "count": 1,
+            "mean": 0.9110643267631531,
+            "sample_std": 0.0,
+            "minimum": 0.9110643267631531,
+            "maximum": 0.9110643267631531
+          },
+          "tail_normalized_mse": {
+            "count": 1,
+            "mean": 1.3020695447921753,
+            "sample_std": 0.0,
+            "minimum": 1.3020695447921753,
+            "maximum": 1.3020695447921753
+          },
+          "waveform_mse": {
+            "count": 1,
+            "mean": 0.032333265990018845,
+            "sample_std": 0.0,
+            "minimum": 0.032333265990018845,
+            "maximum": 0.032333265990018845
+          },
+          "waveform_snr_db": {
+            "count": 1,
+            "mean": 1.3602252006530762,
+            "sample_std": 0.0,
+            "minimum": 1.3602252006530762,
+            "maximum": 1.3602252006530762
+          }
+        }
+      }
+    }
+  }
+}

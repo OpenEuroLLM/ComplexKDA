@@ -1,0 +1,91 @@
+{
+    "saved_model_configurations_and_exact_counts": {
+        "status": "supported_for_new_runs_and_archived_audio",
+        "evidence": [
+            "evidence/results/periodic_waveform/models.jsonl",
+            "evidence/results/fineweb_edu_15b/config_manifest.json",
+            "audio_toys/train_groove_waveform.py",
+            "group_word_problems/train_wordproblem.py"
+        ],
+        "limitation": "historical state-tracking rows did not record parameter counts; exact Nemotron-CC model artifacts are absent"
+    },
+    "dataset_tokenizer_and_evaluation_manifests": {
+        "status": "partial",
+        "evidence": [
+            "evidence/manifests/data_and_evaluation.json",
+            "scripts/mn5_stage_fineweb_edu.py"
+        ],
+        "limitation": "the selected FineWeb-Edu shard list is absent; the language-model evaluation outputs and Nemotron-CC ladder results ARE archived, see language_model_scaling_and_downstream_results"
+    },
+    "per_seed_training_and_selection_logs": {
+        "status": "supported_for_new_runs",
+        "evidence": [
+            "audio_toys/train_groove_waveform.py",
+            "group_word_problems/train_wordproblem.py",
+            "evidence/aggregate_results.py"
+        ],
+        "limitation": "the archived audio result predates structured training traces; historical state rows are rounded"
+    },
+    "raw_metrics_and_unrounded_aggregation": {
+        "status": "supported_for_archived_audio_and_new_runs",
+        "evidence": [
+            "evidence/results/periodic_waveform/models.jsonl",
+            "evidence/results/periodic_waveform/dense_metrics.json",
+            "evidence/aggregate_results.py"
+        ]
+    },
+    "prediction_phase_arrays_and_audio_generator": {
+        "status": "supported_for_archived_audio",
+        "evidence": [
+            "evidence/results/periodic_waveform/arrays",
+            "evidence/verify_archive.py",
+            "audio_toys/export_prediction_arrays.py",
+            "audio_toys/make_techno_loop.py"
+        ]
+    },
+    "initialization_pca_and_spectrum_arrays": {
+        "status": "supported_for_new_runs; archived audio spectrum JSON supplied",
+        "evidence": [
+            "scripts/mn5_flame/kda_qwen3_15b_ablation/plot_initializations.py",
+            "group_word_problems/plot_complex_kda_interpretability.py",
+            "evidence/results/periodic_waveform/complex_kda_spectrum.json"
+        ],
+        "limitation": "historical state-tracking PCA arrays are not archived"
+    },
+    "sign_gauge_reference_and_comparisons": {
+        "status": "CPU algebraic report archived; CUDA verification source supplied",
+        "evidence": [
+            "evidence/verify_sign_gauge.py",
+            "evidence/results/sign_gauge_cpu.json",
+            "tests/ops/test_complex_kda.py"
+        ]
+    },
+    "absolute_throughput_and_prefill": {
+        "status": "measurement script supplied; historical report absent",
+        "evidence": [
+            "benchmarks/benchmark_complex_kda.py"
+        ],
+        "limitation": "do not cite historical percentage ranges from this repository until a hardware report is archived"
+    },
+    "baseline_source_provenance": {
+        "status": "supported_for released synthetic experiments",
+        "evidence": [
+            "evidence/manifests/baseline_provenance.json"
+        ],
+        "limitation": "historical language-model baseline provenance is not fully archived"
+    },
+    "language_model_scaling_and_downstream_results": {
+        "status": "archived",
+        "evidence": [
+            "lm_scaling/harvest/megatron_ladder.tsv",
+            "lm_scaling/harvest/ladder_downstream",
+            "lm_scaling/harvest/downstream",
+            "lm_scaling/harvest/ruler",
+            "lm_scaling/harvest/gate_spectrum",
+            "lm_scaling/reproduce_tables.sh",
+            "tests/lm_scaling/test_harvest_reproduces.py"
+        ],
+        "detail": "180 annealed endpoints of the Megatron-LM scaling ladder (6 arms x 6 rungs x 5 budgets) with their held-out validation loss; the same 180 cells scored on the nine-task downstream suite; the four 1.3B FineWeb-Edu arms at step 190,976; ten RULER needle-retrieval runs; and the transition spectrum of two 1.3B runs. Every table and figure in lm_scaling/tex is generated from these by a script in this repository, and `lm_scaling/reproduce_tables.sh --check` regenerates them and diffs, so the derivation is checkable without a cluster.",
+        "limitation": "these are the harvested RESULTS, not the runs: checkpoints, per-step training logs and the run directories are not committed, and re-training requires the cluster stack in lm_scaling/README.md. Per-step validation curves are torchtitan-only and are not archived; the Megatron cells validate once, at their annealed endpoint."
+    }
+}

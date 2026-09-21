@@ -1,0 +1,24 @@
+# Identity and where a run's output lands.
+#
+# `name` is set by the experiment as an interpolation template; everything
+# else derives FROM it. That is the whole point: the previous pipeline built
+# the run name in `compose.Run.name` and the output directory again in
+# `emit`, and the moment a fingerprint entered one of them all 36 annealings
+# resolved a branch checkpoint in a directory the stable run had never
+# written to, and died on FileNotFoundError a minute in.
+class_name: Job
+name: unnamed
+base_output_dir: ${oc.concat:${oc.env:OUTPUT_DIR,./output}/,${job.name}${oc.if:${slurm.array}, "_${index}", ""}}
+
+log_path: ${.base_output_dir}/${oc.if:${slurm.array},slurm-%A_%a.log,slurm-%j.log}
+log_path_current: ${.base_output_dir}/current${oc.if:${slurm.array}, "_${index}", ""}.log
+# The resolved config, archived beside the run it produced. A number whose
+# config cannot be read back has no provenance -- and this study has already
+# had to reconstruct, from logs, which of two `kda` definitions a run used.
+config_path: ${.base_output_dir}/config-${oc.if:${slurm.array},%A_%a,%j}.yaml
+config_path_current: ${.base_output_dir}/current${oc.if:${slurm.array}, "_${index}", ""}.yaml
+
+slurm: ${slurm}   # ! the monitor submits THIS; do not point it elsewhere
+
+start_condition: null
+cancel_condition: null

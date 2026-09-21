@@ -1,0 +1,16 @@
+{
+  "niah_single_1": {
+    "alias": "niah_single_1",
+    "4096,none": 0.812,
+    "4096_stderr,none": "N/A",
+    "8192,none": 0.534,
+    "8192_stderr,none": "N/A"
+  },
+  "niah_single_2": {
+    "alias": "niah_single_2",
+    "4096,none": 0.832,
+    "4096_stderr,none": "N/A",
+    "8192,none": 0.62,
+    "8192_stderr,none": "N/A"
+  }
+}

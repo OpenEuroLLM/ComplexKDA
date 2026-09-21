@@ -1,0 +1,39 @@
+# social_iqa (SIQA), read from arrow files instead of the loading script.
+#
+# Stock names `social_i_qa`, whose only Hub form is a loading SCRIPT, and
+# datasets 4.4.2 removed script support -- it reports `ConnectionError:
+# Couldn't reach 'social_i_qa' on the Hub`, which reads like a network fault
+# and is a refusal. There is no parquet mirror of SIQA in the shared cache
+# (`lighteval/siqa` is not there either; that route was tried and failed a job
+# four minutes in).
+#
+# What IS there is the dataset the script already built, as arrow:
+# $WORK/cache/allenai___social_i_qa/default/0.1.0/<hash>/social_i_qa-{train,
+# validation}.arrow. The `arrow` packaged builder reads those directly, with no
+# script and no Hub access. Same rows, same columns, same 1,954 validation
+# problems; everything below the route is the stock config verbatim.
+#
+# THE PATHS ARE ABSOLUTE AND CLUSTER-SPECIFIC. That is a property of the data,
+# not of the task: on another machine, point them at that machine's copy. The
+# hash is the builder's config fingerprint and changes only if the dataset is
+# rebuilt.
+task: social_iqa
+dataset_path: arrow
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    train: /e/project1/jureap59/poeppel1/cache/allenai___social_i_qa/default/0.1.0/674d85e42ac7430d3dcd4de7007feaffcb1527c535121e09bab2803fbcc925f8/social_i_qa-train.arrow
+    validation: /e/project1/jureap59/poeppel1/cache/allenai___social_i_qa/default/0.1.0/674d85e42ac7430d3dcd4de7007feaffcb1527c535121e09bab2803fbcc925f8/social_i_qa-validation.arrow
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "Q: {{context}} {{question}}\nA:"
+target_delimiter: " "
+doc_to_choice: "{{[answerA, answerB, answerC]}}"
+doc_to_target: "{{ (label|int) - 1 }}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

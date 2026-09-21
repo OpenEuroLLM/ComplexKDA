@@ -1,0 +1,2965 @@
+{
+ "form": "chinchilla",
+ "data": "lm_scaling/harvest/megatron_ladder.tsv",
+ "arms": [
+  "attn",
+  "attn-qknorm",
+  "kda-sig-lowrank",
+  "ckda-shipped-lowrank",
+  "kda-sig-hybrid-lowrank",
+  "ckda-shipped-hybrid-lowrank"
+ ],
+ "holdout": [
+  "1.7B/50"
+ ],
+ "n_fit": 174,
+ "n_all": 180,
+ "starts": 600,
+ "rows": [
+  {
+   "arm": "attn-qknorm",
+   "size": "124M",
+   "bt": 12,
+   "N": 124547904.0,
+   "D": 12000165888.0,
+   "L": 2.6541,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "124M",
+   "bt": 20,
+   "N": 124547904.0,
+   "D": 20000014336.0,
+   "L": 2.6124,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "124M",
+   "bt": 6,
+   "N": 124547904.0,
+   "D": 6000214016.0,
+   "L": 2.7188,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "302M",
+   "bt": 12,
+   "N": 302010240.0,
+   "D": 12000165888.0,
+   "L": 2.5044,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "302M",
+   "bt": 20,
+   "N": 302010240.0,
+   "D": 20000014336.0,
+   "L": 2.456,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "302M",
+   "bt": 6,
+   "N": 302010240.0,
+   "D": 6000214016.0,
+   "L": 2.5789,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "47M",
+   "bt": 12,
+   "N": 47637888.0,
+   "D": 12000165888.0,
+   "L": 2.8833,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "47M",
+   "bt": 20,
+   "N": 47637888.0,
+   "D": 20000014336.0,
+   "L": 2.8504,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "47M",
+   "bt": 6,
+   "N": 47637888.0,
+   "D": 6000082944.0,
+   "L": 2.9463,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "124M",
+   "bt": 12,
+   "N": 124547904.0,
+   "D": 12000165888.0,
+   "L": 2.6799,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "124M",
+   "bt": 20,
+   "N": 124547904.0,
+   "D": 20000014336.0,
+   "L": 2.6389,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "124M",
+   "bt": 6,
+   "N": 124547904.0,
+   "D": 6000214016.0,
+   "L": 2.7471,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "302M",
+   "bt": 12,
+   "N": 302010240.0,
+   "D": 12000165888.0,
+   "L": 2.5382,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "302M",
+   "bt": 20,
+   "N": 302010240.0,
+   "D": 20000014336.0,
+   "L": 2.4942,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "302M",
+   "bt": 6,
+   "N": 302010240.0,
+   "D": 6000214016.0,
+   "L": 2.6126,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "47M",
+   "bt": 12,
+   "N": 47637888.0,
+   "D": 12000165888.0,
+   "L": 2.9109,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "47M",
+   "bt": 20,
+   "N": 47637888.0,
+   "D": 20000014336.0,
+   "L": 2.8782,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "47M",
+   "bt": 6,
+   "N": 47637888.0,
+   "D": 6000082944.0,
+   "L": 2.9844,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "124M",
+   "bt": 12,
+   "N": 124144574.0,
+   "D": 12000165888.0,
+   "L": 2.6072,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "124M",
+   "bt": 20,
+   "N": 124144574.0,
+   "D": 20000014336.0,
+   "L": 2.5705,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "124M",
+   "bt": 6,
+   "N": 124144574.0,
+   "D": 6000214016.0,
+   "L": 2.6718,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "302M",
+   "bt": 12,
+   "N": 302961170.0,
+   "D": 12000165888.0,
+   "L": 2.4446,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "302M",
+   "bt": 20,
+   "N": 302961170.0,
+   "D": 20000014336.0,
+   "L": 2.3956,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "302M",
+   "bt": 6,
+   "N": 302961170.0,
+   "D": 6000214016.0,
+   "L": 2.5146,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "47M",
+   "bt": 12,
+   "N": 47265270.0,
+   "D": 12000165888.0,
+   "L": 2.8522,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "47M",
+   "bt": 20,
+   "N": 47265270.0,
+   "D": 20000014336.0,
+   "L": 2.825,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "47M",
+   "bt": 6,
+   "N": 47265270.0,
+   "D": 6000082944.0,
+   "L": 2.9126,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "124M",
+   "bt": 12,
+   "N": 125451234.0,
+   "D": 12000165888.0,
+   "L": 2.6212,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "124M",
+   "bt": 20,
+   "N": 125451234.0,
+   "D": 20000014336.0,
+   "L": 2.5837,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "124M",
+   "bt": 6,
+   "N": 125451234.0,
+   "D": 6000214016.0,
+   "L": 2.6869,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "302M",
+   "bt": 12,
+   "N": 303660440.0,
+   "D": 12000165888.0,
+   "L": 2.4505,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "302M",
+   "bt": 20,
+   "N": 303660440.0,
+   "D": 20000014336.0,
+   "L": 2.4077,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "302M",
+   "bt": 6,
+   "N": 303660440.0,
+   "D": 6000214016.0,
+   "L": 2.5243,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "47M",
+   "bt": 12,
+   "N": 48025800.0,
+   "D": 12000165888.0,
+   "L": 2.8664,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "47M",
+   "bt": 20,
+   "N": 48025800.0,
+   "D": 20000014336.0,
+   "L": 2.8403,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "47M",
+   "bt": 6,
+   "N": 48025800.0,
+   "D": 6000082944.0,
+   "L": 2.9247,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "124M",
+   "bt": 12,
+   "N": 124144574.0,
+   "D": 12000165888.0,
+   "L": 2.6083,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "124M",
+   "bt": 20,
+   "N": 124144574.0,
+   "D": 20000014336.0,
+   "L": 2.5708,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "124M",
+   "bt": 6,
+   "N": 124144574.0,
+   "D": 6000214016.0,
+   "L": 2.6719,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "302M",
+   "bt": 12,
+   "N": 302961170.0,
+   "D": 12000165888.0,
+   "L": 2.4437,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "302M",
+   "bt": 20,
+   "N": 302961170.0,
+   "D": 20000014336.0,
+   "L": 2.3967,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "302M",
+   "bt": 6,
+   "N": 302961170.0,
+   "D": 6000214016.0,
+   "L": 2.5174,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "47M",
+   "bt": 12,
+   "N": 47265270.0,
+   "D": 12000165888.0,
+   "L": 2.856,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "47M",
+   "bt": 20,
+   "N": 47265270.0,
+   "D": 20000014336.0,
+   "L": 2.8257,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "47M",
+   "bt": 6,
+   "N": 47265270.0,
+   "D": 6000082944.0,
+   "L": 2.9167,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "124M",
+   "bt": 12,
+   "N": 125451234.0,
+   "D": 12000165888.0,
+   "L": 2.622,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "124M",
+   "bt": 20,
+   "N": 125451234.0,
+   "D": 20000014336.0,
+   "L": 2.585,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "124M",
+   "bt": 6,
+   "N": 125451234.0,
+   "D": 6000214016.0,
+   "L": 2.688,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "302M",
+   "bt": 12,
+   "N": 303660440.0,
+   "D": 12000165888.0,
+   "L": 2.455,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "302M",
+   "bt": 20,
+   "N": 303660440.0,
+   "D": 20000014336.0,
+   "L": 2.4089,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "302M",
+   "bt": 6,
+   "N": 303660440.0,
+   "D": 6000214016.0,
+   "L": 2.5258,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "47M",
+   "bt": 12,
+   "N": 48025800.0,
+   "D": 12000165888.0,
+   "L": 2.8671,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "47M",
+   "bt": 20,
+   "N": 48025800.0,
+   "D": 20000014336.0,
+   "L": 2.8397,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "47M",
+   "bt": 6,
+   "N": 48025800.0,
+   "D": 6000082944.0,
+   "L": 2.9267,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "124M",
+   "bt": 30,
+   "N": 124547904.0,
+   "D": 30000283648.0,
+   "L": 2.5851,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "124M",
+   "bt": 50,
+   "N": 124547904.0,
+   "D": 50000297984.0,
+   "L": 2.5488,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "47M",
+   "bt": 30,
+   "N": 47637888.0,
+   "D": 30000021504.0,
+   "L": 2.8335,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "47M",
+   "bt": 50,
+   "N": 47637888.0,
+   "D": 50000297984.0,
+   "L": 2.8045,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "124M",
+   "bt": 30,
+   "N": 124547904.0,
+   "D": 30000283648.0,
+   "L": 2.6074,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "124M",
+   "bt": 50,
+   "N": 124547904.0,
+   "D": 50000297984.0,
+   "L": 2.5682,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "47M",
+   "bt": 30,
+   "N": 47637888.0,
+   "D": 30000021504.0,
+   "L": 2.8578,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "47M",
+   "bt": 50,
+   "N": 47637888.0,
+   "D": 50000297984.0,
+   "L": 2.8271,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "124M",
+   "bt": 30,
+   "N": 124144574.0,
+   "D": 30000283648.0,
+   "L": 2.5442,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "124M",
+   "bt": 50,
+   "N": 124144574.0,
+   "D": 50000297984.0,
+   "L": 2.5146,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "47M",
+   "bt": 30,
+   "N": 47265270.0,
+   "D": 30000021504.0,
+   "L": 2.8063,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "47M",
+   "bt": 50,
+   "N": 47265270.0,
+   "D": 50000297984.0,
+   "L": 2.7809,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "124M",
+   "bt": 30,
+   "N": 125451234.0,
+   "D": 30000283648.0,
+   "L": 2.5576,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "124M",
+   "bt": 50,
+   "N": 125451234.0,
+   "D": 50000297984.0,
+   "L": 2.5286,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "47M",
+   "bt": 30,
+   "N": 48025800.0,
+   "D": 30000021504.0,
+   "L": 2.8215,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "47M",
+   "bt": 50,
+   "N": 48025800.0,
+   "D": 50000297984.0,
+   "L": 2.7974,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "124M",
+   "bt": 30,
+   "N": 124144574.0,
+   "D": 30000283648.0,
+   "L": 2.5462,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "124M",
+   "bt": 50,
+   "N": 124144574.0,
+   "D": 50000297984.0,
+   "L": 2.5154,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "47M",
+   "bt": 30,
+   "N": 47265270.0,
+   "D": 30000021504.0,
+   "L": 2.8075,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "47M",
+   "bt": 50,
+   "N": 47265270.0,
+   "D": 50000297984.0,
+   "L": 2.7814,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "124M",
+   "bt": 30,
+   "N": 125451234.0,
+   "D": 30000283648.0,
+   "L": 2.5581,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "124M",
+   "bt": 50,
+   "N": 125451234.0,
+   "D": 50000297984.0,
+   "L": 2.5288,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "47M",
+   "bt": 30,
+   "N": 48025800.0,
+   "D": 30000021504.0,
+   "L": 2.822,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "47M",
+   "bt": 50,
+   "N": 48025800.0,
+   "D": 50000297984.0,
+   "L": 2.7962,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "1.7B",
+   "bt": 6,
+   "N": 1713735680.0,
+   "D": 6000214016.0,
+   "L": 2.3725,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "1.7B",
+   "bt": 12,
+   "N": 1713735680.0,
+   "D": 12000428032.0,
+   "L": 2.2829,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "1.7B",
+   "bt": 20,
+   "N": 1713735680.0,
+   "D": 20000014336.0,
+   "L": 2.2218,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "1.7B",
+   "bt": 30,
+   "N": 1713735680.0,
+   "D": 30000283648.0,
+   "L": 2.1812,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "588M",
+   "bt": 12,
+   "N": 588729600.0,
+   "D": 12000165888.0,
+   "L": 2.4051,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "588M",
+   "bt": 20,
+   "N": 588729600.0,
+   "D": 20000014336.0,
+   "L": 2.3534,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "588M",
+   "bt": 30,
+   "N": 588729600.0,
+   "D": 30000283648.0,
+   "L": 2.3172,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "588M",
+   "bt": 50,
+   "N": 588729600.0,
+   "D": 50000297984.0,
+   "L": 2.277,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "588M",
+   "bt": 6,
+   "N": 588729600.0,
+   "D": 6000214016.0,
+   "L": 2.4892,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "983M",
+   "bt": 12,
+   "N": 983311872.0,
+   "D": 12000165888.0,
+   "L": 2.3403,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "983M",
+   "bt": 20,
+   "N": 983311872.0,
+   "D": 20000014336.0,
+   "L": 2.2844,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "983M",
+   "bt": 30,
+   "N": 983311872.0,
+   "D": 30000283648.0,
+   "L": 2.2464,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "983M",
+   "bt": 50,
+   "N": 983311872.0,
+   "D": 50000297984.0,
+   "L": 2.207,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "983M",
+   "bt": 6,
+   "N": 983311872.0,
+   "D": 6000214016.0,
+   "L": 2.4282,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "1.7B",
+   "bt": 6,
+   "N": 1713735680.0,
+   "D": 6000214016.0,
+   "L": 2.4001,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "1.7B",
+   "bt": 12,
+   "N": 1713735680.0,
+   "D": 12000428032.0,
+   "L": 2.31,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "1.7B",
+   "bt": 20,
+   "N": 1713735680.0,
+   "D": 20000014336.0,
+   "L": 2.2488,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "1.7B",
+   "bt": 30,
+   "N": 1713735680.0,
+   "D": 30000283648.0,
+   "L": 2.2077,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "588M",
+   "bt": 12,
+   "N": 588729600.0,
+   "D": 12000165888.0,
+   "L": 2.4346,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "588M",
+   "bt": 20,
+   "N": 588729600.0,
+   "D": 20000014336.0,
+   "L": 2.3805,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "588M",
+   "bt": 30,
+   "N": 588729600.0,
+   "D": 30000283648.0,
+   "L": 2.3436,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "588M",
+   "bt": 50,
+   "N": 588729600.0,
+   "D": 50000297984.0,
+   "L": 2.3032,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "588M",
+   "bt": 6,
+   "N": 588729600.0,
+   "D": 6000214016.0,
+   "L": 2.5209,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "983M",
+   "bt": 12,
+   "N": 983311872.0,
+   "D": 12000165888.0,
+   "L": 2.3682,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "983M",
+   "bt": 20,
+   "N": 983311872.0,
+   "D": 20000014336.0,
+   "L": 2.3114,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "983M",
+   "bt": 30,
+   "N": 983311872.0,
+   "D": 30000283648.0,
+   "L": 2.2721,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "983M",
+   "bt": 50,
+   "N": 983311872.0,
+   "D": 50000297984.0,
+   "L": 2.2298,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "983M",
+   "bt": 6,
+   "N": 983311872.0,
+   "D": 6000214016.0,
+   "L": 2.4551,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 6,
+   "N": 1712287424.0,
+   "D": 6000214016.0,
+   "L": 2.3284,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 12,
+   "N": 1712287424.0,
+   "D": 12000428032.0,
+   "L": 2.2399,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 20,
+   "N": 1712287424.0,
+   "D": 20000014336.0,
+   "L": 2.1795,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 30,
+   "N": 1712287424.0,
+   "D": 30000283648.0,
+   "L": 2.1395,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "588M",
+   "bt": 12,
+   "N": 587745260.0,
+   "D": 12000165888.0,
+   "L": 2.3556,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "588M",
+   "bt": 20,
+   "N": 587745260.0,
+   "D": 20000014336.0,
+   "L": 2.3051,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "588M",
+   "bt": 30,
+   "N": 587745260.0,
+   "D": 30000283648.0,
+   "L": 2.2676,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "588M",
+   "bt": 50,
+   "N": 587745260.0,
+   "D": 50000297984.0,
+   "L": 2.2284,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "588M",
+   "bt": 6,
+   "N": 587745260.0,
+   "D": 6000214016.0,
+   "L": 2.443,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "983M",
+   "bt": 12,
+   "N": 984364080.0,
+   "D": 12000165888.0,
+   "L": 2.292,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "983M",
+   "bt": 20,
+   "N": 984364080.0,
+   "D": 20000014336.0,
+   "L": 2.2369,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "983M",
+   "bt": 30,
+   "N": 984364080.0,
+   "D": 30000283648.0,
+   "L": 2.1981,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "983M",
+   "bt": 50,
+   "N": 984364080.0,
+   "D": 50000297984.0,
+   "L": 2.1571,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "983M",
+   "bt": 6,
+   "N": 984364080.0,
+   "D": 6000214016.0,
+   "L": 2.381,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "1.7B",
+   "bt": 6,
+   "N": 1709707520.0,
+   "D": 6000214016.0,
+   "L": 2.3359,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "1.7B",
+   "bt": 12,
+   "N": 1709707520.0,
+   "D": 12000428032.0,
+   "L": 2.2496,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "1.7B",
+   "bt": 20,
+   "N": 1709707520.0,
+   "D": 20000014336.0,
+   "L": 2.1882,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "1.7B",
+   "bt": 30,
+   "N": 1709707520.0,
+   "D": 30000283648.0,
+   "L": 2.1477,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "588M",
+   "bt": 12,
+   "N": 586324880.0,
+   "D": 12000165888.0,
+   "L": 2.3626,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "588M",
+   "bt": 20,
+   "N": 586324880.0,
+   "D": 20000014336.0,
+   "L": 2.3143,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "588M",
+   "bt": 30,
+   "N": 586324880.0,
+   "D": 30000283648.0,
+   "L": 2.2775,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "588M",
+   "bt": 50,
+   "N": 586324880.0,
+   "D": 50000297984.0,
+   "L": 2.2386,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "588M",
+   "bt": 6,
+   "N": 586324880.0,
+   "D": 6000214016.0,
+   "L": 2.4496,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "983M",
+   "bt": 12,
+   "N": 979996224.0,
+   "D": 12000165888.0,
+   "L": 2.3009,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "983M",
+   "bt": 20,
+   "N": 979996224.0,
+   "D": 20000014336.0,
+   "L": 2.2484,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "983M",
+   "bt": 30,
+   "N": 979996224.0,
+   "D": 30000283648.0,
+   "L": 2.2098,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "983M",
+   "bt": 50,
+   "N": 979996224.0,
+   "D": 50000297984.0,
+   "L": 2.1686,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "983M",
+   "bt": 6,
+   "N": 979996224.0,
+   "D": 6000214016.0,
+   "L": 2.3905,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 6,
+   "N": 1712287424.0,
+   "D": 6000214016.0,
+   "L": 2.3299,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 12,
+   "N": 1712287424.0,
+   "D": 12000428032.0,
+   "L": 2.2433,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 20,
+   "N": 1712287424.0,
+   "D": 20000014336.0,
+   "L": 2.1828,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 30,
+   "N": 1712287424.0,
+   "D": 30000283648.0,
+   "L": 2.1429,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "588M",
+   "bt": 12,
+   "N": 587745260.0,
+   "D": 12000165888.0,
+   "L": 2.3555,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "588M",
+   "bt": 20,
+   "N": 587745260.0,
+   "D": 20000014336.0,
+   "L": 2.3049,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "588M",
+   "bt": 30,
+   "N": 587745260.0,
+   "D": 30000283648.0,
+   "L": 2.2683,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "588M",
+   "bt": 50,
+   "N": 587745260.0,
+   "D": 50000297984.0,
+   "L": 2.2295,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "588M",
+   "bt": 6,
+   "N": 587745260.0,
+   "D": 6000214016.0,
+   "L": 2.4424,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "983M",
+   "bt": 12,
+   "N": 984364080.0,
+   "D": 12000165888.0,
+   "L": 2.2959,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "983M",
+   "bt": 20,
+   "N": 984364080.0,
+   "D": 20000014336.0,
+   "L": 2.2405,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "983M",
+   "bt": 30,
+   "N": 984364080.0,
+   "D": 30000283648.0,
+   "L": 2.2017,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "983M",
+   "bt": 50,
+   "N": 984364080.0,
+   "D": 50000297984.0,
+   "L": 2.1608,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "983M",
+   "bt": 6,
+   "N": 984364080.0,
+   "D": 6000214016.0,
+   "L": 2.385,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "1.7B",
+   "bt": 6,
+   "N": 1709707520.0,
+   "D": 6000214016.0,
+   "L": 2.3402,
+   "chain": false,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "1.7B",
+   "bt": 12,
+   "N": 1709707520.0,
+   "D": 12000428032.0,
+   "L": 2.2507,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "1.7B",
+   "bt": 20,
+   "N": 1709707520.0,
+   "D": 20000014336.0,
+   "L": 2.1898,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "1.7B",
+   "bt": 30,
+   "N": 1709707520.0,
+   "D": 30000283648.0,
+   "L": 2.1494,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "588M",
+   "bt": 12,
+   "N": 586324880.0,
+   "D": 12000165888.0,
+   "L": 2.3673,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "588M",
+   "bt": 20,
+   "N": 586324880.0,
+   "D": 20000014336.0,
+   "L": 2.3191,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "588M",
+   "bt": 30,
+   "N": 586324880.0,
+   "D": 30000283648.0,
+   "L": 2.2815,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "588M",
+   "bt": 50,
+   "N": 586324880.0,
+   "D": 50000297984.0,
+   "L": 2.2417,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "588M",
+   "bt": 6,
+   "N": 586324880.0,
+   "D": 6000214016.0,
+   "L": 2.4532,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "983M",
+   "bt": 12,
+   "N": 979996224.0,
+   "D": 12000165888.0,
+   "L": 2.3059,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "983M",
+   "bt": 20,
+   "N": 979996224.0,
+   "D": 20000014336.0,
+   "L": 2.2532,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "983M",
+   "bt": 30,
+   "N": 979996224.0,
+   "D": 30000283648.0,
+   "L": 2.2141,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "983M",
+   "bt": 50,
+   "N": 979996224.0,
+   "D": 50000297984.0,
+   "L": 2.1722,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "983M",
+   "bt": 6,
+   "N": 979996224.0,
+   "D": 6000214016.0,
+   "L": 2.3963,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "302M",
+   "bt": 30,
+   "N": 302010240.0,
+   "D": 30000283648.0,
+   "L": 2.4287,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "302M",
+   "bt": 50,
+   "N": 302010240.0,
+   "D": 50000297984.0,
+   "L": 2.3882,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "302M",
+   "bt": 30,
+   "N": 302010240.0,
+   "D": 30000283648.0,
+   "L": 2.4598,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn",
+   "size": "302M",
+   "bt": 50,
+   "N": 302010240.0,
+   "D": 50000297984.0,
+   "L": 2.416,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "302M",
+   "bt": 30,
+   "N": 302961170.0,
+   "D": 30000283648.0,
+   "L": 2.3651,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "302M",
+   "bt": 50,
+   "N": 302961170.0,
+   "D": 50000297984.0,
+   "L": 2.3323,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "302M",
+   "bt": 30,
+   "N": 303660440.0,
+   "D": 30000283648.0,
+   "L": 2.3768,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "302M",
+   "bt": 50,
+   "N": 303660440.0,
+   "D": 50000297984.0,
+   "L": 2.3441,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "302M",
+   "bt": 30,
+   "N": 302961170.0,
+   "D": 30000283648.0,
+   "L": 2.3667,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "302M",
+   "bt": 50,
+   "N": 302961170.0,
+   "D": 50000297984.0,
+   "L": 2.3335,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "302M",
+   "bt": 30,
+   "N": 303660440.0,
+   "D": 30000283648.0,
+   "L": 2.3784,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "302M",
+   "bt": 50,
+   "N": 303660440.0,
+   "D": 50000297984.0,
+   "L": 2.3453,
+   "chain": true,
+   "held": false
+  },
+  {
+   "arm": "attn-qknorm",
+   "size": "1.7B",
+   "bt": 50,
+   "N": 1713735680.0,
+   "D": 50000297984.0,
+   "L": 2.1374,
+   "chain": true,
+   "held": true
+  },
+  {
+   "arm": "attn",
+   "size": "1.7B",
+   "bt": 50,
+   "N": 1713735680.0,
+   "D": 50000297984.0,
+   "L": 2.163,
+   "chain": true,
+   "held": true
+  },
+  {
+   "arm": "kda-sig-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 50,
+   "N": 1712287424.0,
+   "D": 50000297984.0,
+   "L": 2.0971,
+   "chain": true,
+   "held": true
+  },
+  {
+   "arm": "kda-sig-lowrank",
+   "size": "1.7B",
+   "bt": 50,
+   "N": 1709707520.0,
+   "D": 50000297984.0,
+   "L": 2.1046,
+   "chain": true,
+   "held": true
+  },
+  {
+   "arm": "ckda-shipped-hybrid-lowrank",
+   "size": "1.7B",
+   "bt": 50,
+   "N": 1712287424.0,
+   "D": 50000297984.0,
+   "L": 2.1002,
+   "chain": true,
+   "held": true
+  },
+  {
+   "arm": "ckda-shipped-lowrank",
+   "size": "1.7B",
+   "bt": 50,
+   "N": 1709707520.0,
+   "D": 50000297984.0,
+   "L": 2.1061,
+   "chain": true,
+   "held": true
+  }
+ ],
+ "fits": [
+  {
+   "kind": "isolated",
+   "isolated": true,
+   "n_params": 36,
+   "rmse": 0.01287569498557887,
+   "aic": -1442.6400213405054,
+   "reps": 200,
+   "params": {
+    "attn": {
+     "E": 1.5864753125537472,
+     "E_fixed": false,
+     "rmse_by_arm": {
+      "attn": 0.01218652806252481
+     },
+     "rmse": 0.01218652806252481,
+     "dchain": -0.002362975368674553,
+     "n_params": 6,
+     "per_arm": [
+      "A",
+      "B",
+      "alpha",
+      "beta"
+     ],
+     "A": 112.20397290152303,
+     "alpha": 0.26723688941873625,
+     "B": 527.8451345475017,
+     "beta": 0.3168299672501418
+    },
+    "attn-qknorm": {
+     "E": 1.6452895869533104,
+     "E_fixed": false,
+     "rmse_by_arm": {
+      "attn-qknorm": 0.01201825133922035
+     },
+     "rmse": 0.01201825133922035,
+     "dchain": -0.0014389510255289999,
+     "n_params": 6,
+     "per_arm": [
+      "A",
+      "B",
+      "alpha",
+      "beta"
+     ],
+     "A": 143.66982908779102,
+     "alpha": 0.282883744531566,
+     "B": 1584.5112039258017,
+     "beta": 0.3720507352740037
+    },
+    "kda-sig-lowrank": {
+     "E": 1.7745271914923755,
+     "E_fixed": false,
+     "rmse_by_arm": {
+      "kda-sig-lowrank": 0.013333413866014002
+     },
+     "rmse": 0.013333413866014002,
+     "dchain": -0.003209717542890723,
+     "n_params": 6,
+     "per_arm": [
+      "A",
+      "B",
+      "alpha",
+      "beta"
+     ],
+     "A": 591.0373040217514,
+     "alpha": 0.36809799844561514,
+     "B": 5164.442350427421,
+     "beta": 0.43092744701552854
+    },
+    "ckda-shipped-lowrank": {
+     "E": 1.7674080561729182,
+     "E_fixed": false,
+     "rmse_by_arm": {
+      "ckda-shipped-lowrank": 0.013387410141540712
+     },
+     "rmse": 0.013387410141540712,
+     "dchain": -0.0019169396789228443,
+     "n_params": 6,
+     "per_arm": [
+      "A",
+      "B",
+      "alpha",
+      "beta"
+     ],
+     "A": 535.6922848559402,
+     "alpha": 0.3623894757027713,
+     "B": 5207.501664155998,
+     "beta": 0.430521070424718
+    },
+    "kda-sig-hybrid-lowrank": {
+     "E": 1.7524865974591448,
+     "E_fixed": false,
+     "rmse_by_arm": {
+      "kda-sig-hybrid-lowrank": 0.013588741488909139
+     },
+     "rmse": 0.013588741488909139,
+     "dchain": -0.0019648508141335936,
+     "n_params": 6,
+     "per_arm": [
+      "A",
+      "B",
+      "alpha",
+      "beta"
+     ],
+     "A": 490.53858844384536,
+     "alpha": 0.35773048511022965,
+     "B": 5807.179069863007,
+     "beta": 0.43518535807504427
+    },
+    "ckda-shipped-hybrid-lowrank": {
+     "E": 1.7630648359889924,
+     "E_fixed": false,
+     "rmse_by_arm": {
+      "ckda-shipped-hybrid-lowrank": 0.012652854453677503
+     },
+     "rmse": 0.012652854453677503,
+     "dchain": -0.0024872622358822704,
+     "n_params": 6,
+     "per_arm": [
+      "A",
+      "B",
+      "alpha",
+      "beta"
+     ],
+     "A": 559.7298005474322,
+     "alpha": 0.3660706521245352,
+     "B": 4277.49959768786,
+     "beta": 0.42133704701529745
+    }
+   },
+   "ci": {
+    "E": {
+     "attn": [
+      -0.2694192737674888,
+      1.8445643345353748
+     ],
+     "attn-qknorm": [
+      0.3097462530154826,
+      1.840505368246944
+     ],
+     "kda-sig-lowrank": [
+      -0.7546878774004324,
+      1.9218688558333847
+     ],
+     "ckda-shipped-lowrank": [
+      -3.234947905952224,
+      1.910855516465083
+     ],
+     "kda-sig-hybrid-lowrank": [
+      -141.37547391733938,
+      1.8649413558672203
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      -1.049492059739133,
+      1.893755048454383
+     ]
+    },
+    "rmse": {
+     "attn": [
+      0.00650324326177499,
+      0.013329847251503261
+     ],
+     "attn-qknorm": [
+      0.006269947356558144,
+      0.014222761632395229
+     ],
+     "kda-sig-lowrank": [
+      0.006034693567854695,
+      0.01500590358823347
+     ],
+     "ckda-shipped-lowrank": [
+      0.0061721832235917444,
+      0.015022767041174475
+     ],
+     "kda-sig-hybrid-lowrank": [
+      0.006868959787789465,
+      0.014818946975289349
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      0.006516816288577363,
+      0.014833611388759603
+     ]
+    },
+    "dchain": {
+     "attn": [
+      -0.02283181567146557,
+      0.027324927647221026
+     ],
+     "attn-qknorm": [
+      -0.02205064345132886,
+      0.01797448597192162
+     ],
+     "kda-sig-lowrank": [
+      -0.025834192390945403,
+      0.01696896526435509
+     ],
+     "ckda-shipped-lowrank": [
+      -0.0244685428518335,
+      0.022135119037582366
+     ],
+     "kda-sig-hybrid-lowrank": [
+      -0.028648193639663866,
+      0.019235316773500488
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      -0.024169137038524784,
+      0.018887955956192696
+     ]
+    },
+    "A": {
+     "attn": [
+      43.798090155422045,
+      472.72472744557155
+     ],
+     "attn-qknorm": [
+      53.14926813645414,
+      450.75840018979227
+     ],
+     "kda-sig-lowrank": [
+      158.57132860502074,
+      1237.9419401020746
+     ],
+     "ckda-shipped-lowrank": [
+      115.97688545268021,
+      1093.5612378839458
+     ],
+     "kda-sig-hybrid-lowrank": [
+      121.74922064024923,
+      1130.9570493382616
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      175.1324761430688,
+      1263.7563149350765
+     ]
+    },
+    "alpha": {
+     "attn": [
+      0.20374904741918703,
+      0.3596143590313794
+     ],
+     "attn-qknorm": [
+      0.21735013946909953,
+      0.3552761087806572
+     ],
+     "kda-sig-lowrank": [
+      0.2878847586552894,
+      0.41468967836153175
+     ],
+     "ckda-shipped-lowrank": [
+      0.26799364571997863,
+      0.40869223453736203
+     ],
+     "kda-sig-hybrid-lowrank": [
+      0.271118718330519,
+      0.40994762261966156
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      0.2959177345001781,
+      0.4156556757833724
+     ]
+    },
+    "B": {
+     "attn": [
+      6.518394614048098,
+      47005.68665701899
+     ],
+     "attn-qknorm": [
+      6.216964097432433,
+      77569.04669311405
+     ],
+     "kda-sig-lowrank": [
+      10.429103075717714,
+      10475515.571185153
+     ],
+     "ckda-shipped-lowrank": [
+      7.013641901409733,
+      282274.2160083183
+     ],
+     "kda-sig-hybrid-lowrank": [
+      5.979452397962398,
+      268445.584957054
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      5.835776603488295,
+      1861141.9826387744
+     ]
+    },
+    "beta": {
+     "attn": [
+      0.03833470431226143,
+      0.5311909681463343
+     ],
+     "attn-qknorm": [
+      0.05651014057234604,
+      0.5558319848924096
+     ],
+     "kda-sig-lowrank": [
+      0.04057706813272996,
+      0.7867152777261716
+     ],
+     "ckda-shipped-lowrank": [
+      0.017399369913886353,
+      0.6136424262454027
+     ],
+     "kda-sig-hybrid-lowrank": [
+      0.000564366842449525,
+      0.6125406010812899
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      0.030030999379322573,
+      0.7044731379757689
+     ]
+    }
+   },
+   "pred": [
+    2.663840820025497,
+    2.615068329341252,
+    2.7467381204256323,
+    2.500542901807226,
+    2.4517704111229808,
+    2.5834402022073615,
+    2.894015807489313,
+    2.845243316805068,
+    2.9769160718543013,
+    2.694889081096866,
+    2.6443605888419013,
+    2.7779342665932103,
+    2.5325340506458676,
+    2.4820055583909033,
+    2.6155792361422123,
+    2.920441083639794,
+    2.86991259138483,
+    3.0034891843200504,
+    2.6151387105528503,
+    2.5675823360228947,
+    2.6991391589157283,
+    2.4446228587480583,
+    2.397066484218103,
+    2.5286233071109363,
+    2.872642988223771,
+    2.825086613693816,
+    2.9566465033092344,
+    2.62617028249497,
+    2.5798929823240195,
+    2.7076994696949117,
+    2.4546757717431533,
+    2.4083984715722027,
+    2.5362049589430953,
+    2.8879311152848937,
+    2.8416538151139425,
+    2.969463274815574,
+    2.614999143232905,
+    2.5680693430404915,
+    2.6971958043776585,
+    2.4451570545715073,
+    2.3982272543790932,
+    2.5273537157162607,
+    2.873489582312078,
+    2.826559782119664,
+    2.9556892306661258,
+    2.62828207086988,
+    2.581216468350106,
+    2.7111795061311574,
+    2.4576620087214227,
+    2.4105964062016487,
+    2.5405594439827,
+    2.8873346719181123,
+    2.840269069398338,
+    2.9702351289882305,
+    2.582439009643829,
+    2.547755008842588,
+    2.812614648574691,
+    2.777929996306404,
+    2.6096850647981498,
+    2.5718873843489747,
+    2.835237767638536,
+    2.797439386891903,
+    2.5366800166978027,
+    2.5047617575468273,
+    2.794184903295716,
+    2.7622660352177486,
+    2.549762646198292,
+    2.5185814432929963,
+    2.8115240732310895,
+    2.7803422760829193,
+    2.537378620150259,
+    2.505478673218494,
+    2.7958696657364372,
+    2.7639691122976666,
+    2.550567133624342,
+    2.518842969541347,
+    2.8096203392026027,
+    2.777895570589579,
+    2.3609174236239867,
+    2.276578881991953,
+    2.2278086815140776,
+    2.1951793618166544,
+    2.400428222347919,
+    2.3516557316636737,
+    2.319026411966251,
+    2.28434241116501,
+    2.4833255227480544,
+    2.336298249417516,
+    2.2875257587332714,
+    2.254896439035848,
+    2.220212438234607,
+    2.4191955498176516,
+    2.3899362431506024,
+    2.304525741882644,
+    2.253999590030619,
+    2.2193240659868674,
+    2.430853595474818,
+    2.3803251032198536,
+    2.345649579176102,
+    2.307851898726927,
+    2.5138987809711626,
+    2.3657034138189363,
+    2.3151749215639716,
+    2.28049939752022,
+    2.242701717071045,
+    2.448748599315281,
+    2.3191612213940007,
+    2.2331936540728767,
+    2.1856395476870336,
+    2.1547372283619417,
+    2.3469326758267997,
+    2.299376301296844,
+    2.268473981971752,
+    2.2365557228207766,
+    2.4309331241896777,
+    2.2866520605119667,
+    2.2390956859820115,
+    2.2081933666569196,
+    2.1762751075059437,
+    2.3706525088748447,
+    2.3263219573222957,
+    2.241580847749789,
+    2.1953057524085127,
+    2.1651754162827856,
+    2.355548248427745,
+    2.309270948256794,
+    2.279140612131067,
+    2.247959409225771,
+    2.4370774356276868,
+    2.2952478284553495,
+    2.2489705282843984,
+    2.2188401921586713,
+    2.187658989253375,
+    2.376777015655291,
+    2.3208764137938775,
+    2.2361902597677115,
+    2.1892626902208283,
+    2.158571967330596,
+    2.347947395471431,
+    2.3010175952790175,
+    2.270326872388785,
+    2.2384269254570204,
+    2.430144056616185,
+    2.2885933310385806,
+    2.241663530846167,
+    2.2109728079559345,
+    2.1790728610241694,
+    2.370789992183334,
+    2.330263870399648,
+    2.2454472532961898,
+    2.1983838929396735,
+    2.167734558213909,
+    2.359889636685972,
+    2.312824034166198,
+    2.282174699440433,
+    2.2504505353574387,
+    2.442787071947249,
+    2.2994247949504434,
+    2.2523591924306694,
+    2.221709857704905,
+    2.18998569362191,
+    2.3823222302117206,
+    2.417702140400029,
+    2.383018139598788,
+    2.4449670589784773,
+    2.407169378529302,
+    2.3641993140788777,
+    2.332281054927902,
+    2.3750584179035847,
+    2.3438772149982885,
+    2.365049269252979,
+    2.333149322321214,
+    2.378030131796961,
+    2.346305967713967,
+    2.160495361015413,
+    2.1815263855376923,
+    2.1228189692109662,
+    2.1339942133774894,
+    2.1266720203988307,
+    2.1360103941309143
+   ],
+   "held": [
+    {
+     "arm": "attn-qknorm",
+     "cell": "1.7B/50",
+     "L": 2.1374,
+     "pred": 2.160495361015413,
+     "err": 0.023095361015413207,
+     "pred_ci": [
+      2.1439611104270444,
+      2.1837813396109733
+     ],
+     "ci": [
+      0.0065611104270444365,
+      0.04638133961097335
+     ]
+    },
+    {
+     "arm": "attn",
+     "cell": "1.7B/50",
+     "L": 2.163,
+     "pred": 2.1815263855376923,
+     "err": 0.01852638553769248,
+     "pred_ci": [
+      2.165104268599555,
+      2.2105613008476728
+     ],
+     "ci": [
+      0.002104268599555148,
+      0.04756130084767296
+     ]
+    },
+    {
+     "arm": "kda-sig-hybrid-lowrank",
+     "cell": "1.7B/50",
+     "L": 2.0971,
+     "pred": 2.1228189692109662,
+     "err": 0.02571896921096606,
+     "pred_ci": [
+      2.1023257774910693,
+      2.142419885353022
+     ],
+     "ci": [
+      0.005225777491069117,
+      0.04531988535302167
+     ]
+    },
+    {
+     "arm": "kda-sig-lowrank",
+     "cell": "1.7B/50",
+     "L": 2.1046,
+     "pred": 2.1339942133774894,
+     "err": 0.029394213377489375,
+     "pred_ci": [
+      2.1112047572294106,
+      2.1586634862664456
+     ],
+     "ci": [
+      0.006604757229410563,
+      0.054063486266445526
+     ]
+    },
+    {
+     "arm": "ckda-shipped-hybrid-lowrank",
+     "cell": "1.7B/50",
+     "L": 2.1002,
+     "pred": 2.1266720203988307,
+     "err": 0.026472020398830676,
+     "pred_ci": [
+      2.105110134352377,
+      2.153575419185305
+     ],
+     "ci": [
+      0.004910134352376971,
+      0.053375419185305084
+     ]
+    },
+    {
+     "arm": "ckda-shipped-lowrank",
+     "cell": "1.7B/50",
+     "L": 2.1061,
+     "pred": 2.1360103941309143,
+     "err": 0.02991039413091423,
+     "pred_ci": [
+      2.112898325748421,
+      2.162936912368069
+     ],
+     "ci": [
+      0.006798325748420986,
+      0.05683691236806876
+     ]
+    }
+   ],
+   "control": [
+    {
+     "arm": "attn-qknorm",
+     "cell": "1.7B/50",
+     "pred": 2.1522290790709744,
+     "err": 0.014829079070974416
+    },
+    {
+     "arm": "attn",
+     "cell": "1.7B/50",
+     "pred": 2.173812608288765,
+     "err": 0.01081260828876518
+    },
+    {
+     "arm": "kda-sig-hybrid-lowrank",
+     "cell": "1.7B/50",
+     "pred": 2.1119298488293547,
+     "err": 0.014829848829354564
+    },
+    {
+     "arm": "kda-sig-lowrank",
+     "cell": "1.7B/50",
+     "pred": 2.1222997526285146,
+     "err": 0.01769975262851453
+    },
+    {
+     "arm": "ckda-shipped-hybrid-lowrank",
+     "cell": "1.7B/50",
+     "pred": 2.116518601233595,
+     "err": 0.016318601233594965
+    },
+    {
+     "arm": "ckda-shipped-lowrank",
+     "cell": "1.7B/50",
+     "pred": 2.1241341194567336,
+     "err": 0.0180341194567335
+    }
+   ]
+  },
+  {
+   "kind": "pinned",
+   "isolated": false,
+   "n_params": 25,
+   "rmse": 0.013355283377133717,
+   "aic": -1451.9134384166182,
+   "reps": 200,
+   "params": {
+    "E": 1.3659,
+    "E_fixed": true,
+    "rmse_by_arm": {
+     "attn": 0.012771035793667498,
+     "attn-qknorm": 0.01271374912432539,
+     "kda-sig-lowrank": 0.013780405262347896,
+     "ckda-shipped-lowrank": 0.013773485595912625,
+     "kda-sig-hybrid-lowrank": 0.013777049666075753,
+     "ckda-shipped-hybrid-lowrank": 0.013267525025601712
+    },
+    "rmse": 0.013355283377133717,
+    "dchain": 0.001284125391078339,
+    "n_params": 25,
+    "per_arm": [
+     "A",
+     "B",
+     "alpha",
+     "beta"
+    ],
+    "A": {
+     "attn": 82.53552541572978,
+     "attn-qknorm": 96.36661836315653,
+     "kda-sig-lowrank": 393.1922192702975,
+     "ckda-shipped-lowrank": 372.4945797330757,
+     "kda-sig-hybrid-lowrank": 336.813856090014,
+     "ckda-shipped-hybrid-lowrank": 373.462237579326
+    },
+    "alpha": {
+     "attn": 0.24672137825018453,
+     "attn-qknorm": 0.2567757786912372,
+     "kda-sig-lowrank": 0.3427565147719073,
+     "ckda-shipped-lowrank": 0.3398877722547458,
+     "kda-sig-hybrid-lowrank": 0.33436742195164587,
+     "ckda-shipped-hybrid-lowrank": 0.34098446643732694
+    },
+    "B": {
+     "attn": 64.29422746256127,
+     "attn-qknorm": 54.0235462734584,
+     "kda-sig-lowrank": 21.49242034531129,
+     "ckda-shipped-lowrank": 21.407386734339727,
+     "kda-sig-hybrid-lowrank": 24.74435242654169,
+     "ckda-shipped-hybrid-lowrank": 23.129814620356903
+    },
+    "beta": {
+     "attn": 0.20913262832406515,
+     "attn-qknorm": 0.2019420559913478,
+     "kda-sig-lowrank": 0.15389828955079612,
+     "ckda-shipped-lowrank": 0.15360465811257687,
+     "kda-sig-hybrid-lowrank": 0.16103612404148127,
+     "ckda-shipped-hybrid-lowrank": 0.15714350452672265
+    }
+   },
+   "ci": {
+    "E": [
+     1.3659,
+     1.3659
+    ],
+    "rmse_by_arm": {
+     "attn": [
+      0.007343798401211093,
+      0.014206519572923354
+     ],
+     "attn-qknorm": [
+      0.00723981095145463,
+      0.015408474050738535
+     ],
+     "kda-sig-lowrank": [
+      0.007941299072153166,
+      0.015797820822057832
+     ],
+     "ckda-shipped-lowrank": [
+      0.0070955057133132,
+      0.016946598490501074
+     ],
+     "kda-sig-hybrid-lowrank": [
+      0.007702723844442608,
+      0.01607686380431563
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      0.00739226387162813,
+      0.016236914128160716
+     ]
+    },
+    "rmse": [
+     0.01030827711684809,
+     0.013518060246700552
+    ],
+    "dchain": [
+     -0.009486640289924964,
+     0.008271743786438562
+    ],
+    "A": {
+     "attn": [
+      44.39057162523878,
+      373.0111862544122
+     ],
+     "attn-qknorm": [
+      52.94014701041438,
+      337.06541082162886
+     ],
+     "kda-sig-lowrank": [
+      140.57755108649098,
+      1064.8198304145822
+     ],
+     "ckda-shipped-lowrank": [
+      101.00563020834147,
+      1100.052793937059
+     ],
+     "kda-sig-hybrid-lowrank": [
+      107.01135279502694,
+      1215.9374097098469
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      156.4004752972901,
+      1096.5593540232958
+     ]
+    },
+    "alpha": {
+     "attn": [
+      0.20534151944101786,
+      0.3405918376407159
+     ],
+     "attn-qknorm": [
+      0.21787489665209572,
+      0.3363401795547151
+     ],
+     "kda-sig-lowrank": [
+      0.2810639220514385,
+      0.4016617990401684
+     ],
+     "ckda-shipped-lowrank": [
+      0.2606092123604051,
+      0.40452901492838106
+     ],
+     "kda-sig-hybrid-lowrank": [
+      0.26155719101182395,
+      0.4126943302202846
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      0.2873076742008016,
+      0.4061561714320789
+     ]
+    },
+    "B": {
+     "attn": [
+      14.701314535309892,
+      329.7534175520611
+     ],
+     "attn-qknorm": [
+      15.113516319553835,
+      185.47875864981427
+     ],
+     "kda-sig-lowrank": [
+      12.413787407076015,
+      56.69170342050888
+     ],
+     "ckda-shipped-lowrank": [
+      11.715722001611493,
+      89.17433013707294
+     ],
+     "kda-sig-hybrid-lowrank": [
+      12.116649382091813,
+      92.99392448200778
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      12.212685341870523,
+      52.9131097031721
+     ]
+    },
+    "beta": {
+     "attn": [
+      0.13246987153328152,
+      0.2928980867092593
+     ],
+     "attn-qknorm": [
+      0.1358692218758785,
+      0.26577589711492644
+     ],
+     "kda-sig-lowrank": [
+      0.12833083475864768,
+      0.2018486220774791
+     ],
+     "ckda-shipped-lowrank": [
+      0.12602317877679878,
+      0.2262126735313886
+     ],
+     "kda-sig-hybrid-lowrank": [
+      0.12781111056496475,
+      0.22854896777704786
+     ],
+     "ckda-shipped-hybrid-lowrank": [
+      0.12390894519140949,
+      0.19708241073976623
+     ]
+    }
+   },
+   "pred": [
+    2.667804295101659,
+    2.6190006330212587,
+    2.742614123879565,
+    2.5042498503027715,
+    2.4554461882223713,
+    2.5790596790806775,
+    2.892831100856659,
+    2.844027438776259,
+    2.9676434562296903,
+    2.6979329926627056,
+    2.6471196732542346,
+    2.7761633644161816,
+    2.534896355227429,
+    2.4840830358189585,
+    2.613126726980905,
+    2.920167879660413,
+    2.8693545602519426,
+    2.9984008999688405,
+    2.617519726878724,
+    2.570981723224509,
+    2.6871119865343465,
+    2.446698405582811,
+    2.400160401928596,
+    2.5162906652384334,
+    2.8699240322530675,
+    2.8233860285988523,
+    2.939518609890491,
+    2.628879683943685,
+    2.5832074595636034,
+    2.6968830436991205,
+    2.4566531619654874,
+    2.410980937585406,
+    2.5246565217209227,
+    2.885659371567589,
+    2.8399871471875073,
+    2.953664990886995,
+    2.6180137350851345,
+    2.5715047028240496,
+    2.6873991068518306,
+    2.447745383621466,
+    2.4012363513603816,
+    2.5171307553881626,
+    2.8711585785132905,
+    2.824649546252206,
+    2.9405462583122266,
+    2.6302210841606914,
+    2.5845024975600084,
+    2.698281387246817,
+    2.4593296243495217,
+    2.4136110377488387,
+    2.5273899274356473,
+    2.8843342837901833,
+    2.8386156971895,
+    2.9523968481063108,
+    2.5836902612140515,
+    2.5431300947463176,
+    2.8087177971903037,
+    2.768156900501318,
+    2.6104766259679275,
+    2.568523583035272,
+    2.8327122696275397,
+    2.79075847003298,
+    2.5366715768817727,
+    2.496517173379747,
+    2.7890765977740215,
+    2.74892147875409,
+    2.5494250114462007,
+    2.509759046484146,
+    2.8062054046142575,
+    2.7665387341080505,
+    2.5371545401771245,
+    2.496881746051872,
+    2.7903001005293255,
+    2.7500265894800284,
+    2.5506811948332277,
+    2.5109642801777294,
+    2.8047951008608347,
+    2.7650774798072213,
+    2.348727905677319,
+    2.275200005720543,
+    2.2263985402100914,
+    2.1910881684028842,
+    2.404658800944837,
+    2.355855138864437,
+    2.32054476705723,
+    2.2799846005894957,
+    2.479468629722743,
+    2.338074189551765,
+    2.289270527471365,
+    2.253960155664158,
+    2.213399989196424,
+    2.412884018329671,
+    2.3805869016787278,
+    2.303638364164902,
+    2.252827335907859,
+    2.2161842886215517,
+    2.4348291578715493,
+    2.3840158384630787,
+    2.3473727911767712,
+    2.305419748244116,
+    2.5130595296250258,
+    2.3675294803619957,
+    2.3167161609535247,
+    2.2800731136672177,
+    2.238120070734562,
+    2.4457598521154718,
+    2.300240002093344,
+    2.231929794666425,
+    2.1853938641745847,
+    2.151083717831848,
+    2.350304605902023,
+    2.3037666022478076,
+    2.2694564559050714,
+    2.2293020524030456,
+    2.4198968655576456,
+    2.2879345587130846,
+    2.2413965550588695,
+    2.2070864087161333,
+    2.1669320052141074,
+    2.357526818368707,
+    2.3071420294453966,
+    2.24042076414316,
+    2.1947505707009585,
+    2.1609681225835553,
+    2.359683908047179,
+    2.314011683667098,
+    2.280229235549695,
+    2.240563270587641,
+    2.4276872678026145,
+    2.296983414850625,
+    2.2513111904705436,
+    2.2175287423531405,
+    2.1778627773910864,
+    2.36498677460606,
+    2.3035540693222574,
+    2.235450753105748,
+    2.1889437906855544,
+    2.1545936280386293,
+    2.352173765803537,
+    2.3056647335424527,
+    2.271314570895527,
+    2.231041776770275,
+    2.4215591375702337,
+    2.2905713365341045,
+    2.2440623042730197,
+    2.2097121416260945,
+    2.169439347500842,
+    2.3599567083008006,
+    2.3107900693221133,
+    2.244011858778024,
+    2.1982953050263827,
+    2.164474002299602,
+    2.362903371967288,
+    2.3171847853666048,
+    2.283363482639824,
+    2.243646567984326,
+    2.4309636750534134,
+    2.300443657328259,
+    2.2547250707275754,
+    2.220903768000795,
+    2.1811868533452965,
+    2.368503960414384,
+    2.421419941806242,
+    2.380859775338508,
+    2.4487241139237295,
+    2.406771070991074,
+    2.3671343809769376,
+    2.3269799774749123,
+    2.3784826148590814,
+    2.3388166498970273,
+    2.3681703141045345,
+    2.327897519979282,
+    2.381073860413136,
+    2.341356945757638,
+    2.1505280019351503,
+    2.1742312456888966,
+    2.1109293143298222,
+    2.121302157621501,
+    2.1143208339133768,
+    2.1247570876441038
+   ],
+   "held": [
+    {
+     "arm": "attn-qknorm",
+     "cell": "1.7B/50",
+     "L": 2.1374,
+     "pred": 2.1505280019351503,
+     "err": 0.01312800193515029,
+     "pred_ci": [
+      2.143644269586703,
+      2.1720922112279406
+     ],
+     "ci": [
+      0.0062442695867028775,
+      0.03469221122794064
+     ]
+    },
+    {
+     "arm": "attn",
+     "cell": "1.7B/50",
+     "L": 2.163,
+     "pred": 2.1742312456888966,
+     "err": 0.011231245688896774,
+     "pred_ci": [
+      2.1680912562849457,
+      2.199116944957667
+     ],
+     "ci": [
+      0.005091256284945889,
+      0.03611694495766704
+     ]
+    },
+    {
+     "arm": "kda-sig-hybrid-lowrank",
+     "cell": "1.7B/50",
+     "L": 2.0971,
+     "pred": 2.1109293143298222,
+     "err": 0.01382931432982204,
+     "pred_ci": [
+      2.09988843685595,
+      2.1267186142630115
+     ],
+     "ci": [
+      0.002788436855949872,
+      0.029618614263011267
+     ]
+    },
+    {
+     "arm": "kda-sig-lowrank",
+     "cell": "1.7B/50",
+     "L": 2.1046,
+     "pred": 2.121302157621501,
+     "err": 0.01670215762150118,
+     "pred_ci": [
+      2.1101462879601383,
+      2.1396748434713713
+     ],
+     "ci": [
+      0.00554628796013823,
+      0.03507484347137124
+     ]
+    },
+    {
+     "arm": "ckda-shipped-hybrid-lowrank",
+     "cell": "1.7B/50",
+     "L": 2.1002,
+     "pred": 2.1143208339133768,
+     "err": 0.014120833913376707,
+     "pred_ci": [
+      2.103980852641353,
+      2.1351375156694266
+     ],
+     "ci": [
+      0.003780852641352972,
+      0.03493751566942649
+     ]
+    },
+    {
+     "arm": "ckda-shipped-lowrank",
+     "cell": "1.7B/50",
+     "L": 2.1061,
+     "pred": 2.1247570876441038,
+     "err": 0.018657087644103676,
+     "pred_ci": [
+      2.112067939049849,
+      2.1418052012320175
+     ],
+     "ci": [
+      0.005967939049849047,
+      0.03570520123201737
+     ]
+    }
+   ],
+   "control": [
+    {
+     "arm": "attn-qknorm",
+     "cell": "1.7B/50",
+     "pred": 2.147642737719801,
+     "err": 0.01024273771980111
+    },
+    {
+     "arm": "attn",
+     "cell": "1.7B/50",
+     "pred": 2.171827223749153,
+     "err": 0.008827223749153124
+    },
+    {
+     "arm": "kda-sig-hybrid-lowrank",
+     "cell": "1.7B/50",
+     "pred": 2.1068707105523616,
+     "err": 0.00977071055236145
+    },
+    {
+     "arm": "kda-sig-lowrank",
+     "cell": "1.7B/50",
+     "pred": 2.116750455539993,
+     "err": 0.012150455539992944
+    },
+    {
+     "arm": "ckda-shipped-hybrid-lowrank",
+     "cell": "1.7B/50",
+     "pred": 2.110179066519769,
+     "err": 0.009979066519768764
+    },
+    {
+     "arm": "ckda-shipped-lowrank",
+     "cell": "1.7B/50",
+     "pred": 2.12022116354434,
+     "err": 0.01412116354434012
+    }
+   ]
+  }
+ ]
+}

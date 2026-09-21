@@ -1,0 +1,72 @@
+# The Megatron backend's stack, pinned to exact commits.
+#
+# Read and enforced by `lm_scaling/make_megatron_stack.sh`. Whitespace-
+# delimited, `#` starts a comment; four columns, plus an optional fifth:
+#
+#   <kind>  <name>  <url>  <commit>  [branch]
+#
+# WHY A LOCKFILE AND NOT A GIT SUBMODULE OF oellm-autoexp.
+#
+#   * Three of autoexp's own four submodules are declared with
+#     `git@github.com:` URLs. Nesting it as a submodule here would pull that
+#     into this repository, where every clone without a GitHub SSH key would
+#     fail on repositories that are all public. The script rewrites those URLs
+#     instead, scoped to the clone it makes.
+#   * The three orchestration libraries are pip-installed from a BRANCH, so no
+#     git mechanism pins them at all. They are the part that actually drifts,
+#     and a submodule would not have helped.
+#   * `external/` is deliberately gitignored: the cluster checkout is synced,
+#     not committed, so what belongs in git is the pin, not the tree.
+#
+# WHY IT IS CHECKED AND NOT JUST WRITTEN. `submodule update --init --recursive`
+# resolves whatever the parent commit points at, which is right -- but if the
+# parent moves, the ladder changes framework without a word. That is precisely
+# the variable this comparison exists to hold fixed: at 47M/6BT the two
+# frameworks disagree by 0.049 nats on identical configuration, which is larger
+# than most of the effects being measured. `--verify` turns a moved pin into an
+# error instead of a footnote.
+#
+# THE COMMITS BELOW were resolved from the public repositories on 2026-09-17,
+# with the two exceptions below, and describe the stack the ladder ran on.
+#
+# TWO COMMITS ARE OURS AND ARE NOT UPSTREAM'S. The study needs one argument
+# Megatron does not have -- `--ckda-arm`, which tells the spec module which arm
+# of the ladder to build -- and the three autoexp files that mirror Megatron's
+# argument table, so the value survives autoexp's config layer. Both live on a
+# branch named `feat/complex-kda` in the respective OpenEuroLLM repository:
+#
+#   oellm-autoexp          6cdc977a  on top of bd5a54b4 (hybrid_exp)
+#   submodules/Megatron-LM 40a52158  on top of 514b31b3
+#
+# They are ordinary commits on ordinary branches, not a patch applied over
+# someone else's tree, so `git log` says who changed what and a reader gets
+# them from the same clone as everything else.
+#
+# UNTIL THOSE BRANCHES ARE PUSHED the two commits resolve only in a local
+# checkout, and `make_megatron_stack.sh` says so plainly rather than failing
+# with a bare "reference is not a tree". Pushing them is the last step of
+# preparing this release; nothing else about the stack changes when it happens.
+
+# --- cloned by the script ---------------------------------------------------
+
+# `feat/complex-kda` is OURS, one commit on top of `hybrid_exp`. The commit is the
+# pin; the branch is how to fetch it cheaply, and where to push it.
+repo       oellm-autoexp            https://github.com/OpenEuroLLM/oellm-autoexp.git          6cdc977af6c8c70bd03351a700fd8dd4a4b3d8c9  feat/complex-kda
+
+# --- pinned BY autoexp's tree, recorded here so a moved pin is visible -------
+# The script does not clone these itself -- `submodule update --recursive`
+# does, from the parent commit above -- it checks that what landed is this.
+# Also ours: one commit on top of 514b31b3, adding the complex_kda variant and
+# nothing else. The branch column is documentation -- submodules resolve from
+# the parent commit above, not from a branch.
+submodule  submodules/Megatron-LM      https://github.com/OpenEuroLLM/NVIDIA-Megatron-LM.git  40a521583dcccd0ef1dd03b5a9f083d84dc8533b  feat/complex-kda
+submodule  submodules/titan-oellm      https://github.com/OpenEuroLLM/titan-oellm.git         11e1737b44ad6cb43998851ce742951a86c6c985
+submodule  submodules/oellm_evals      https://github.com/OpenEuroLLM/oellm-evals.git         5e8225c5e116e514a9ed9569ababdf733291543b
+submodule  submodules/Megatron-Bridge  https://github.com/NVIDIA-NeMo/Megatron-Bridge.git     0dae728241d4ead96c5da7aba7d2a383e58bf7d7
+
+# --- pip-installed into autoexp's venv --------------------------------------
+# NOT in autoexp's pyproject, and pinned to a branch upstream: these are the
+# entries that make this file worth having.
+pip        hydra_staged_sweep       https://github.com/kpoeppel/hydra_staged_sweep.git        c2c469ae7faa00234efa9ad90a287e6581fac44c  main
+pip        slurm_gen                https://github.com/kpoeppel/slurm_gen.git                 b8bbeaafe313dec388439a03131f3c7f0b8d6fcd  main
+pip        monitor                  https://github.com/kpoeppel/monitor.git                   bffba51ba1c9b8ea5b0313f56dcc33defcbe02e2  main

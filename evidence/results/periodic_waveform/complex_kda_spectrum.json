@@ -1,0 +1,1135 @@
+[
+  {
+    "model": "a11_b02",
+    "seed": 0,
+    "checkpoint": "audio_toys/checkpoints/groove_waveform_d128_h8_hd16_all_core_cosine/groove-waveform-a11_b02-seed0.pt",
+    "blank_value_max_abs": 0.0,
+    "per_head_state_shape": [
+      16,
+      16
+    ],
+    "full_state_shape": [
+      8,
+      16,
+      16
+    ],
+    "value_dimension_multiplicity": 16,
+    "complex_eigenvalues_per_k_spectrum": 8,
+    "complex_eigenvalues_in_full_state": 128,
+    "heads": [
+      {
+        "head": 0,
+        "alpha": [
+          0.9963516592979431,
+          0.9982571005821228,
+          -0.9997149705886841,
+          0.9929787516593933,
+          0.990466296672821,
+          -0.9770370721817017,
+          -0.9986115097999573,
+          -0.9798831939697266,
+          -0.9925436973571777,
+          -0.9939546585083008,
+          0.9963718056678772,
+          0.9979187846183777,
+          -0.9317997097969055,
+          -0.9937282204627991,
+          -0.9991888403892517,
+          0.9963274598121643
+        ],
+        "beta": 0.24318262934684753,
+        "spectral_radius": 0.9996909911831389,
+        "complex_eigenvalues": 0,
+        "eigenvalues": [
+          {
+            "real": 0.9056379785556846,
+            "imag": 0.0,
+            "magnitude": 0.9056379785556846,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9905120342399453,
+            "imag": 0.0,
+            "magnitude": 0.9905120342399453,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9929948613596873,
+            "imag": 0.0,
+            "magnitude": 0.9929948613596873,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9981137411096189,
+            "imag": 0.0,
+            "magnitude": 0.9981137411096189,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9974354177572362,
+            "imag": 0.0,
+            "magnitude": 0.9974354177572362,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9963683597006012,
+            "imag": 0.0,
+            "magnitude": 0.9963683597006012,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9963476520609346,
+            "imag": 0.0,
+            "magnitude": 0.9963476520609346,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": -0.8209069761100461,
+            "imag": 0.0,
+            "magnitude": 0.8209069761100461,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9351578427103125,
+            "imag": 0.0,
+            "magnitude": 0.9351578427103125,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9795182243154471,
+            "imag": 0.0,
+            "magnitude": 0.9795182243154471,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9835302202773742,
+            "imag": 0.0,
+            "magnitude": 0.9835302202773742,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9996909911831389,
+            "imag": 0.0,
+            "magnitude": 0.9996909911831389,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9987661384792587,
+            "imag": 0.0,
+            "magnitude": 0.9987661384792587,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9969876303693457,
+            "imag": 0.0,
+            "magnitude": 0.9969876303693457,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9932020842403552,
+            "imag": 0.0,
+            "magnitude": 0.9932020842403552,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9939476287417743,
+            "imag": 0.0,
+            "magnitude": 0.9939476287417743,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          }
+        ]
+      },
+      {
+        "head": 1,
+        "alpha": [
+          -0.9978058338165283,
+          0.9853119254112244,
+          -0.9979777336120605,
+          -0.7283446192741394,
+          -0.9000182747840881,
+          -0.990861177444458,
+          0.8341987729072571,
+          -0.9984204173088074,
+          0.9965498447418213,
+          0.9991505742073059,
+          0.9987415075302124,
+          -0.9969416856765747,
+          0.9961391687393188,
+          -0.9930920004844666,
+          0.9977330565452576,
+          0.9891194105148315
+        ],
+        "beta": 1.0242811441421509,
+        "spectral_radius": 0.9988547138797356,
+        "complex_eigenvalues": 2,
+        "eigenvalues": [
+          {
+            "real": -0.08941595798997395,
+            "imag": 0.12298829174462646,
+            "magnitude": 0.15205700723585922,
+            "angle_radians": 2.199432669179425,
+            "period_steps": 2.856730008254241
+          },
+          {
+            "real": -0.08941595798997395,
+            "imag": -0.12298829174462646,
+            "magnitude": 0.15205700723585922,
+            "angle_radians": -2.199432669179425,
+            "period_steps": 2.856730008254241
+          },
+          {
+            "real": 0.8431593624853914,
+            "imag": 0.0,
+            "magnitude": 0.8431593624853914,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": -0.7292533958009828,
+            "imag": 0.0,
+            "magnitude": 0.7292533958009828,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9248081062283317,
+            "imag": 0.0,
+            "magnitude": 0.9248081062283317,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9915407033942611,
+            "imag": 0.0,
+            "magnitude": 0.9915407033942611,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9955369537055321,
+            "imag": 0.0,
+            "magnitude": 0.9955369537055321,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9976288500641978,
+            "imag": 0.0,
+            "magnitude": 0.9976288500641978,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9978369618170838,
+            "imag": 0.0,
+            "magnitude": 0.9978369618170838,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9980020465427467,
+            "imag": 0.0,
+            "magnitude": 0.9980020465427467,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": 0.9870431640986238,
+            "imag": 0.0,
+            "magnitude": 0.9870431640986238,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9897855976912118,
+            "imag": 0.0,
+            "magnitude": 0.9897855976912118,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9988547138797356,
+            "imag": 0.0,
+            "magnitude": 0.9988547138797356,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9985751034482733,
+            "imag": 0.0,
+            "magnitude": 0.9985751034482733,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.996680742149602,
+            "imag": 0.0,
+            "magnitude": 0.996680742149602,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9961397319332052,
+            "imag": 0.0,
+            "magnitude": 0.9961397319332052,
+            "angle_radians": 0.0,
+            "period_steps": null
+          }
+        ]
+      },
+      {
+        "head": 2,
+        "alpha": [
+          0.9842467308044434,
+          -0.9981129169464111,
+          -0.9454929232597351,
+          -0.9969287514686584,
+          -0.985697329044342,
+          -0.9933407306671143,
+          -0.9978124499320984,
+          0.9988419413566589,
+          -0.9909606575965881,
+          0.9990987777709961,
+          0.9937748908996582,
+          0.9979073405265808,
+          -0.9986283183097839,
+          -0.8946003913879395,
+          0.996765673160553,
+          0.9993798136711121
+        ],
+        "beta": 1.9874686002731323,
+        "spectral_radius": 0.9993380278792872,
+        "complex_eigenvalues": 2,
+        "eigenvalues": [
+          {
+            "real": 0.19425231051888614,
+            "imag": 0.9702301702288039,
+            "magnitude": 0.9894849889534149,
+            "angle_radians": 1.3731963467394914,
+            "period_steps": 4.575591336299678
+          },
+          {
+            "real": 0.19425231051888614,
+            "imag": -0.9702301702288039,
+            "magnitude": 0.9894849889534149,
+            "angle_radians": -1.3731963467394914,
+            "period_steps": 4.575591336299678
+          },
+          {
+            "real": 0.984662625320942,
+            "imag": 0.0,
+            "magnitude": 0.984662625320942,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9937832316899233,
+            "imag": 0.0,
+            "magnitude": 0.9937832316899233,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9967823771911202,
+            "imag": 0.0,
+            "magnitude": 0.9967823771911202,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9979696187174009,
+            "imag": 0.0,
+            "magnitude": 0.9979696187174009,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9993380278792872,
+            "imag": 0.0,
+            "magnitude": 0.9993380278792872,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.99884231358885,
+            "imag": 0.0,
+            "magnitude": 0.99884231358885,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": -0.8952386219316915,
+            "imag": 0.0,
+            "magnitude": 0.8952386219316915,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9457325971288545,
+            "imag": 0.0,
+            "magnitude": 0.9457325971288545,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9867825589429506,
+            "imag": 0.0,
+            "magnitude": 0.9867825589429506,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9915568969697086,
+            "imag": 0.0,
+            "magnitude": 0.9915568969697086,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9948149932058136,
+            "imag": 0.0,
+            "magnitude": 0.9948149932058136,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9977460534708007,
+            "imag": 0.0,
+            "magnitude": 0.9977460534708007,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9986281480504383,
+            "imag": 0.0,
+            "magnitude": 0.9986281480504383,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9981128793073502,
+            "imag": 0.0,
+            "magnitude": 0.9981128793073502,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          }
+        ]
+      },
+      {
+        "head": 3,
+        "alpha": [
+          -0.9984531402587891,
+          -0.9654290676116943,
+          -0.9997608065605164,
+          -0.9989799857139587,
+          0.9987638592720032,
+          0.7853303551673889,
+          -0.9967389702796936,
+          0.9263081550598145,
+          0.9941086769104004,
+          0.9872850775718689,
+          -0.9901629686355591,
+          0.9794166088104248,
+          -0.9435721635818481,
+          0.9995785355567932,
+          0.9989839196205139,
+          0.9923290014266968
+        ],
+        "beta": 0.6998317837715149,
+        "spectral_radius": 0.9996112237241592,
+        "complex_eigenvalues": 0,
+        "eigenvalues": [
+          {
+            "real": -0.48285553594122926,
+            "imag": 0.0,
+            "magnitude": 0.48285553594122926,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9459042821748119,
+            "imag": 0.0,
+            "magnitude": 0.9459042821748119,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9671866845484496,
+            "imag": 0.0,
+            "magnitude": 0.9671866845484496,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.990275048960839,
+            "imag": 0.0,
+            "magnitude": 0.990275048960839,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9968269419080995,
+            "imag": 0.0,
+            "magnitude": 0.9968269419080995,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9996112237241592,
+            "imag": 0.0,
+            "magnitude": 0.9996112237241592,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9989577028209198,
+            "imag": 0.0,
+            "magnitude": 0.9989577028209198,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": 0.5964522589493535,
+            "imag": 0.0,
+            "magnitude": 0.5964522589493535,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.8080114980334835,
+            "imag": 0.0,
+            "magnitude": 0.8080114980334835,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.926562101111058,
+            "imag": 0.0,
+            "magnitude": 0.926562101111058,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9797669732584501,
+            "imag": 0.0,
+            "magnitude": 0.9797669732584501,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9874401184832816,
+            "imag": 0.0,
+            "magnitude": 0.9874401184832816,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9938917945005062,
+            "imag": 0.0,
+            "magnitude": 0.9938917945005062,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9978490632686483,
+            "imag": 0.0,
+            "magnitude": 0.9978490632686483,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.999442007990452,
+            "imag": 0.0,
+            "magnitude": 0.999442007990452,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.998810848469397,
+            "imag": 0.0,
+            "magnitude": 0.998810848469397,
+            "angle_radians": 0.0,
+            "period_steps": null
+          }
+        ]
+      },
+      {
+        "head": 4,
+        "alpha": [
+          0.996100127696991,
+          -0.9641184210777283,
+          0.9912261962890625,
+          -0.9819173216819763,
+          -0.9985448718070984,
+          -0.8735587000846863,
+          0.9988906979560852,
+          0.8364513516426086,
+          -0.995164692401886,
+          -0.9982616901397705,
+          -0.9780809283256531,
+          0.9736834764480591,
+          -0.9983199238777161,
+          0.8355947732925415,
+          -0.5146684646606445,
+          0.9973475933074951
+        ],
+        "beta": 0.09861154109239578,
+        "spectral_radius": 0.9986571605016527,
+        "complex_eigenvalues": 0,
+        "eigenvalues": [
+          {
+            "real": 0.8059647744155952,
+            "imag": 0.0,
+            "magnitude": 0.8059647744155952,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.8358814563711787,
+            "imag": 0.0,
+            "magnitude": 0.8358814563711787,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9658744132776789,
+            "imag": 0.0,
+            "magnitude": 0.9658744132776789,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9737072744108731,
+            "imag": 0.0,
+            "magnitude": 0.9737072744108731,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9986571605016527,
+            "imag": 0.0,
+            "magnitude": 0.9986571605016527,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9961887685461452,
+            "imag": 0.0,
+            "magnitude": 0.9961887685461452,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9940646588470758,
+            "imag": 0.0,
+            "magnitude": 0.9940646588470758,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": -0.5067479072467431,
+            "imag": 0.0,
+            "magnitude": 0.5067479072467431,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.8712983530565335,
+            "imag": 0.0,
+            "magnitude": 0.8712983530565335,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9609618751375093,
+            "imag": 0.0,
+            "magnitude": 0.9609618751375093,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9771684834267698,
+            "imag": 0.0,
+            "magnitude": 0.9771684834267698,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9825156827870932,
+            "imag": 0.0,
+            "magnitude": 0.9825156827870932,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9818269517330604,
+            "imag": 0.0,
+            "magnitude": 0.9818269517330604,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9958371455395684,
+            "imag": 0.0,
+            "magnitude": 0.9958371455395684,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9985044493739039,
+            "imag": 0.0,
+            "magnitude": 0.9985044493739039,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9982817853956464,
+            "imag": 0.0,
+            "magnitude": 0.9982817853956464,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          }
+        ]
+      },
+      {
+        "head": 5,
+        "alpha": [
+          -0.9806197881698608,
+          -0.9935305118560791,
+          -0.9858493804931641,
+          -0.9972311854362488,
+          -0.9971822500228882,
+          0.9988114833831787,
+          0.9609373807907104,
+          0.9807551503181458,
+          0.9701930284500122,
+          -0.9946275353431702,
+          -0.9968154430389404,
+          -0.9876543283462524,
+          0.9946304559707642,
+          0.9993345737457275,
+          0.9969707131385803,
+          -0.9815200567245483
+        ],
+        "beta": 1.9904183149337769,
+        "spectral_radius": 0.9990926186203946,
+        "complex_eigenvalues": 2,
+        "eigenvalues": [
+          {
+            "real": -0.8228018862355453,
+            "imag": 0.5502658945216364,
+            "magnitude": 0.9898461995009467,
+            "angle_radians": 2.5521347408632087,
+            "period_steps": 2.461933222637933
+          },
+          {
+            "real": -0.8228018862355453,
+            "imag": -0.5502658945216364,
+            "magnitude": 0.9898461995009467,
+            "angle_radians": -2.5521347408632087,
+            "period_steps": 2.461933222637933
+          },
+          {
+            "real": 0.9630740946536993,
+            "imag": 0.0,
+            "magnitude": 0.9630740946536993,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.971049448993709,
+            "imag": 0.0,
+            "magnitude": 0.971049448993709,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9807770855883369,
+            "imag": 0.0,
+            "magnitude": 0.9807770855883369,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9952729189871682,
+            "imag": 0.0,
+            "magnitude": 0.9952729189871682,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9976718711386988,
+            "imag": 0.0,
+            "magnitude": 0.9976718711386988,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9990926186203946,
+            "imag": 0.0,
+            "magnitude": 0.9990926186203946,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": -0.9807690986431399,
+            "imag": 0.0,
+            "magnitude": 0.9807690986431399,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9822015131504803,
+            "imag": 0.0,
+            "magnitude": 0.9822015131504803,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9861973480326286,
+            "imag": 0.0,
+            "magnitude": 0.9861973480326286,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9878675263485722,
+            "imag": 0.0,
+            "magnitude": 0.9878675263485722,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9940811243021258,
+            "imag": 0.0,
+            "magnitude": 0.9940811243021258,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9949340433800854,
+            "imag": 0.0,
+            "magnitude": 0.9949340433800854,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.997124351703554,
+            "imag": 0.0,
+            "magnitude": 0.997124351703554,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9971845411310913,
+            "imag": 0.0,
+            "magnitude": 0.9971845411310913,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          }
+        ]
+      },
+      {
+        "head": 6,
+        "alpha": [
+          0.9895304441452026,
+          -0.999167263507843,
+          0.9692418575286865,
+          0.9969753623008728,
+          -0.996239185333252,
+          -0.9787303805351257,
+          -0.9985657334327698,
+          0.9985508322715759,
+          0.9955768585205078,
+          -0.9994626641273499,
+          0.9973318576812744,
+          -0.9992252588272095,
+          -0.9990751147270203,
+          0.9983298182487488,
+          0.9988262057304382,
+          -0.9858858585357666
+        ],
+        "beta": 1.9864962100982666,
+        "spectral_radius": 0.9993684851035954,
+        "complex_eigenvalues": 2,
+        "eigenvalues": [
+          {
+            "real": -0.00020129263373307025,
+            "imag": 0.9891384090715529,
+            "magnitude": 0.9891384295533802,
+            "angle_radians": 1.57099982979216,
+            "period_steps": 3.999481851001116
+          },
+          {
+            "real": -0.00020129263373307025,
+            "imag": -0.9891384090715529,
+            "magnitude": 0.9891384295533802,
+            "angle_radians": -1.57099982979216,
+            "period_steps": 3.999481851001116
+          },
+          {
+            "real": 0.9727286056015547,
+            "imag": 0.0,
+            "magnitude": 0.9727286056015547,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9897365409085821,
+            "imag": 0.0,
+            "magnitude": 0.9897365409085821,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9958818584636002,
+            "imag": 0.0,
+            "magnitude": 0.9958818584636002,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9972033735955903,
+            "imag": 0.0,
+            "magnitude": 0.9972033735955903,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9976269784848366,
+            "imag": 0.0,
+            "magnitude": 0.9976269784848366,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9987371175982297,
+            "imag": 0.0,
+            "magnitude": 0.9987371175982297,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.998533526901477,
+            "imag": 0.0,
+            "magnitude": 0.998533526901477,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": -0.9787468609366183,
+            "imag": 0.0,
+            "magnitude": 0.9787468609366183,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9866671727200224,
+            "imag": 0.0,
+            "magnitude": 0.9866671727200224,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9966215093290387,
+            "imag": 0.0,
+            "magnitude": 0.9966215093290387,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9986846992133875,
+            "imag": 0.0,
+            "magnitude": 0.9986846992133875,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9993684851035954,
+            "imag": 0.0,
+            "magnitude": 0.9993684851035954,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9990787714197157,
+            "imag": 0.0,
+            "magnitude": 0.9990787714197157,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9992217765063516,
+            "imag": 0.0,
+            "magnitude": 0.9992217765063516,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          }
+        ]
+      },
+      {
+        "head": 7,
+        "alpha": [
+          0.9957394003868103,
+          0.9986310005187988,
+          -0.9990923404693604,
+          -0.9537568092346191,
+          -0.9801024794578552,
+          -0.9981839060783386,
+          0.9977662563323975,
+          -0.923369288444519,
+          0.9974955916404724,
+          0.9869465827941895,
+          0.9840730428695679,
+          -0.5224077701568604,
+          0.1703094244003296,
+          -0.4801384508609772,
+          0.9965968132019043,
+          0.9863946437835693
+        ],
+        "beta": 0.3224768340587616,
+        "spectral_radius": 0.9985395556842377,
+        "complex_eigenvalues": 0,
+        "eigenvalues": [
+          {
+            "real": 0.16960321585774812,
+            "imag": 0.0,
+            "magnitude": 0.16960321585774812,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": -0.47726625069187584,
+            "imag": 0.0,
+            "magnitude": 0.47726625069187584,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.5077826490448404,
+            "imag": 0.0,
+            "magnitude": 0.5077826490448404,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.8147676608984348,
+            "imag": 0.0,
+            "magnitude": 0.8147676608984348,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.923689468481665,
+            "imag": 0.0,
+            "magnitude": 0.923689468481665,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9691189355546493,
+            "imag": 0.0,
+            "magnitude": 0.9691189355546493,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.9813243305697371,
+            "imag": 0.0,
+            "magnitude": 0.9813243305697371,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": -0.998349644312681,
+            "imag": 0.0,
+            "magnitude": 0.998349644312681,
+            "angle_radians": 3.141592653589793,
+            "period_steps": null
+          },
+          {
+            "real": 0.8436401738299165,
+            "imag": 0.0,
+            "magnitude": 0.8436401738299165,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9854266824101581,
+            "imag": 0.0,
+            "magnitude": 0.9854266824101581,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9874711609985772,
+            "imag": 0.0,
+            "magnitude": 0.9874711609985772,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9867816297736272,
+            "imag": 0.0,
+            "magnitude": 0.9867816297736272,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9958514798080026,
+            "imag": 0.0,
+            "magnitude": 0.9958514798080026,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9985395556842377,
+            "imag": 0.0,
+            "magnitude": 0.9985395556842377,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9972519426066141,
+            "imag": 0.0,
+            "magnitude": 0.9972519426066141,
+            "angle_radians": 0.0,
+            "period_steps": null
+          },
+          {
+            "real": 0.9977572103299304,
+            "imag": 0.0,
+            "magnitude": 0.9977572103299304,
+            "angle_radians": 0.0,
+            "period_steps": null
+          }
+        ]
+      }
+    ],
+    "mode_ablation": {
+      "baseline_normalized_mse": 7.363217446254566e-05,
+      "remove_complex_normalized_mse": 1.1778042316436768,
+      "complex_only_normalized_mse": 5.8820013999938965,
+      "remove_complex_mse_ratio": 15995.78228187174,
+      "complex_state_squared_norm_fraction": 0.4723217487335205,
+      "modal_reconstruction_max_abs": 9.5367431640625e-07,
+      "manual_vs_layer_prediction_max_abs": 3.0994415283203125e-06
+    }
+  }
+]

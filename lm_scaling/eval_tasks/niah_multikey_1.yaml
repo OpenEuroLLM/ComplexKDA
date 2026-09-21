@@ -1,0 +1,6 @@
+# niah_multikey_1: the stock config's two lines, over the metric list in
+# niah_single_1.yaml beside this file. `include` resolves from THIS directory,
+# so it picks up our metric keys and not lm-eval's.
+task: niah_multikey_1
+include: niah_single_1.yaml
+custom_dataset: !function ruler_niah.niah_multikey_1

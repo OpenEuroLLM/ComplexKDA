@@ -1,0 +1,119 @@
+# test file
+test.py
+
+# data files
+data
+# `lm_scaling/data/` is the corpus-staging CODE, not a corpus. The bare rule
+# above matches any path component named `data`, which swallowed both this and
+# the data config group.
+!/lm_scaling/data/
+!/lm_scaling/data/**
+!/lm_scaling/config/data/
+!/lm_scaling/config/data/**
+
+# bash scripts
+*.sh
+# ... except the ones that build the environments lm_scaling runs in. A
+# reproduction needs them, and a blanket rule would drop them silently.
+!/lm_scaling/**/*.sh
+
+# docs
+docs/_build
+
+# intermediate files
+build
+dist
+*.egg-info
+dist-packages/*
+
+# experimental results
+exp
+results
+!/evidence/results/
+!/evidence/results/**
+profile/
+*.ncu-rep
+*.nsys-rep
+wandb
+*.csv
+*.png
+*.html
+
+# log and config files
+log.*
+*.log
+*.cfg
+*.ini
+
+# virtual environments
+.env
+.venv
+env
+venv
+
+# The external stacks `lm_scaling/make_megatron_stack.sh` materialises. What
+# belongs in git is the PIN (lm_scaling/megatron_stack.lock), not the tree:
+# these are other projects' repositories, pinned by commit and fetched on
+# demand.
+/external/
+
+# pycache
+__pycache__
+# Re-stated after the lm_scaling negations above: a negation re-includes
+# everything under its path, and the earlier `__pycache__` rule would not win.
+__pycache__/
+**/__pycache__/**
+*.pyc
+
+# saved model
+*.pkl
+*.pt
+
+# generated audio-experiment artifacts
+/audio_toys/audio/
+/audio_toys/checkpoints/
+/audio_toys/results/
+/audio_toys/figures/
+/artifacts/periodic_waveform/
+/artifacts/state_tracking/
+
+# legacy experiment output directories
+/a5_search/
+/s3_paper/
+/s4_paper/
+/sweep_curriculum/
+
+# vscode
+.vscode
+
+# macOS
+.DS_Store
+
+# group word-problem experiment outputs (results, not source)
+/wp*.jsonl
+/group_word_problems/*.jsonl
+
+# JetBrains IDE settings
+.idea/
+
+# lm_scaling/harvest/ holds the COMMITTED results the paper's tables and fits
+# are regenerated from -- the expensive ones (RULER, 180 ladder cells, the 1.3B
+# downstream scores). They are the artifact, not run output, and the bare
+# `results` rule above would swallow them.
+!/lm_scaling/harvest/
+!/lm_scaling/harvest/**
+# The generated figures and tables, likewise: `*.png` and `*.csv` above are for
+# stray run output, not for the paper's own files.
+!/lm_scaling/tex/
+!/lm_scaling/tex/**
+# ... except the PDFs. They are the paper's build product and nothing here reads
+# them: the README embeds the PNGs, and `reproduce_tables.sh --check` compares
+# the tables only -- matplotlib PDFs differ byte for byte on every run while
+# drawing the same thing, so committing them would carry 1.6 MB that no check
+# can verify. `reproduce_tables.sh` writes the PDF beside every PNG, so a
+# clone regenerates them.
+/lm_scaling/tex/*.pdf
+# ... and the reference fit's own data, which `*.csv` would otherwise drop.
+!/lm_scaling/reference/
+!/lm_scaling/reference/**
+/lm_scaling/tex/*.png

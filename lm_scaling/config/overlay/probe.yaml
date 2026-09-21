@@ -1,0 +1,65 @@
+# A short run of the campaign's OWN job, for measuring how fast it goes.
+#
+# Everything a speed number depends on stays the ladder's -- the flavor, the
+# mixer kwargs, the micro-batch, the global batch, the context, the compile
+# scope, the FSDP wrapping torchtitan chooses, the dataloader. Only the LENGTH
+# changes, plus checkpointing and validation, which measure disk and the
+# held-out split rather than the step.
+#
+# This used to be `submit.as_probe()`, which reached into a resolved config and
+# assigned to it. Six of the failures this project has paid for were that
+# shape: a field written after resolution while everything derived from it kept
+# the old value. Here the values land BEFORE resolution, as overrides, so the
+# archived config.yaml beside a probe is the config the probe ran.
+#
+# WHY THIS OVERRIDES `backend.titan` AND NOT `aux`.
+#
+# An overlay is applied as command-line overrides, and `hydra_staged_sweep`
+# composes each job as `setup.overrides + [index] + point.parameters` -- the
+# SWEEP POINT comes last and wins. A staged campaign's stage group sets
+# `aux.steps` per stage, so an overlay that set `aux.steps` worked on an
+# unstaged campaign and was silently ignored on a staged one: measured on the
+# torchtitan ladder, 12 steps through the unstaged campaign and 230,400 through
+# the staged one, with nothing in between saying so.
+#
+# `backend.titan.training.steps` is what torchtitan actually reads, and no
+# sweep group sets it. Overriding the CONSUMER rather than the intermediate is
+# also the more honest split: `aux` goes on describing the campaign cell this
+# probe was cut from -- which rung, which budget, which chain -- and
+# `backend.titan` says what this particular job runs. The archived config then
+# answers both questions instead of losing the first.
+aux:
+  # The knob. `-o ++aux.probe_steps=40` from any caller; user overrides are
+  # applied after the overlay, so they win.
+  probe_steps: 12
+  # Read by plan.check, which holds a probe to "will it run" and not to "is it
+  # the experiment it claims to be". See its docstring.
+  probe: "1"
+
+backend:
+  titan:
+    training:
+      steps: ${aux.probe_steps}
+    lr_scheduler:
+      # Enough to leave the warmup ramp, short enough not to be the whole run.
+      warm_steps: 5
+      cooldown_steps: 0
+    checkpoint:
+      # This also settles the two fields a decay stage sets and an overlay
+      # therefore cannot: `initial_load_path` and `interval` are read by a
+      # CheckpointManager that is not built.
+      enable: false
+    validation:
+      enable: false
+    metrics:
+      # torchtitan reports tps/tflops/mfu on every metrics line; one a step
+      # keeps the whole window visible in a run this short.
+      log_freq: 1
+
+job:
+  # A probe does not announce itself finished to a monitor that is not
+  # watching. `start_condition` and `cancel_condition` are set per stage by
+  # the sweep on the chained ladders and so cannot be cleared from here --
+  # which is why `submit.py --probe --run` is not a thing anyone should do on
+  # a chained campaign. Submit probes by hand, or probe the stable stages.
+  finish_condition: null

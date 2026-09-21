@@ -1,0 +1,5 @@
+# The campaign exactly as its experiment file describes it.
+#
+# An explicit no-op rather than an absent file, so `--overlay none` is a thing
+# you can say and `plan.py --print-overrides` has something to print. The
+# overlay mechanism is documented in lm_scaling/plan.py:overlay_overrides.

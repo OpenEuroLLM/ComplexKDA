@@ -1,0 +1,24 @@
+{
+  "niah_single_1": {
+    "alias": "niah_single_1",
+    "4096,none": 0.94,
+    "4096_stderr,none": "N/A",
+    "1024,none": 0.322,
+    "1024_stderr,none": "N/A",
+    "2048,none": 0.658,
+    "2048_stderr,none": "N/A",
+    "8192,none": 0.688,
+    "8192_stderr,none": "N/A"
+  },
+  "niah_single_2": {
+    "alias": "niah_single_2",
+    "4096,none": 0.976,
+    "4096_stderr,none": "N/A",
+    "1024,none": 0.736,
+    "1024_stderr,none": "N/A",
+    "2048,none": 1.0,
+    "2048_stderr,none": "N/A",
+    "8192,none": 0.21,
+    "8192_stderr,none": "N/A"
+  }
+}

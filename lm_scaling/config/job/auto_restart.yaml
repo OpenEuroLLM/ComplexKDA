@@ -1,0 +1,76 @@
+# Resubmit on the failures that are known to be transient, and stop on the
+# ones that are not.
+#
+# Each entry below was paid for:
+#
+#   * A launch flake dies in SECONDS -- an empty MASTER_ADDR makes torchrun
+#     exit 2 before the monitor's poll ever sees the job RUNNING, so the
+#     RUNNING->FAILED transition never fires and the reservation is simply
+#     lost. Matching the exit-code line in the log catches those, because the
+#     log is processed before the terminal-state check.
+#   * SLURM wall-time is a state transition, not a log line: sacct reports
+#     TIMEOUT after the job has left squeue.
+#
+# And one that is deliberately ABSENT: an OOM must not restart. At 302M the
+# same micro-batch OOMs every time, and a restart loop spends the whole
+# reservation rediscovering that. It is caught by `cancel_condition` on the
+# jobs that depend on this one instead.
+defaults:
+  - default
+
+log_events:
+  - name: error
+    pattern: "Exited with exit code [1-9][0-9]*"
+    pattern_type: regex
+    action:
+      class_name: RestartAction
+      reason: "Non-zero srun exit"
+
+  # The log stopped growing at all. Both halves must hold (AND), because a
+  # distributed checkpoint save and the first Triton compile each go
+  # log-silent for minutes -- a 5-minute window scancelled jobs mid-save and
+  # corrupted the checkpoint they were writing.
+  #
+  # This was disabled while the handler was dead code upstream; it works now.
+  - name: inactive
+    pattern_type: inactivity
+    inactivity_polls: 20
+    inactivity_timeout_s: 1200
+    action:
+      class_name: RestartAction
+      reason: "Log silent for 20 polls and 20 minutes"
+
+  # The counter stopped MOVING, which is not the same question. A job wedged
+  # in a launcher restart loop keeps emitting fresh setup banners, so it is
+  # never inactive -- upstream saw one grow a 251 MB log over four hours while
+  # pinned at the same iteration.
+  #
+  # `\bstep:` and not `step:`: the metrics line leads with `micro_step:`, and
+  # a bare match takes THAT -- grad-accumulation times too large. The same
+  # anchor bug once made every collected step count 4x. `\b` fails between
+  # `_` and `s`, so it picks the real field and nothing else.
+  #
+  # any_change, so a cooldown resuming at its branch step -- which moves the
+  # counter BACKWARDS -- counts as progress rather than as a stall.
+  - name: stalled
+    pattern_type: progress
+    pattern: "\\bstep:\\s*([0-9]+)"
+    progress_group: 1
+    progress_mode: any_change
+    progress_polls: 20
+    progress_timeout_s: 1800
+    action:
+      class_name: RestartAction
+      reason: "Step counter has not moved for 30 minutes"
+
+state_events:
+  - name: failed
+    transition: ["RUNNING", "FAILED"]
+    action:
+      class_name: RestartAction
+      reason: "Job failed"
+  - name: timeout
+    transition: ["RUNNING", "TIMEOUT"]
+    action:
+      class_name: RestartAction
+      reason: "Wall-time; resumes from the last checkpoint"

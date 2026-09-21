@@ -1,0 +1,1 @@
+scienceplots>=2.1

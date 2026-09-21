@@ -1,0 +1,30 @@
+# @package _global_
+# What every experiment shares: how a job is launched, and the scratch keys
+# the launch line reads.
+defaults:
+  - override /job: auto_restart
+
+index: 0
+stage: ""
+
+slurm:
+  # Backend-agnostic on purpose: `launcher`, `entrypoint`, `config_flag` and
+  # `config_file` are fields on the backend, so swapping torchtitan for `lm/`
+  # swaps a config group and not this line. The previous pipeline kept a
+  # separate .sbatch per backend and per experiment -- nine of them -- and
+  # they drifted: two carried a stale container path, one an empty
+  # LD_LIBRARY_PATH that hid libcuda from every rank.
+  command:
+    - ${backend.launcher}
+    - "${oc.join:' ',${oc.mapkeyvaltmpl:'--%k=%v',${backend.torchrun_args}}}"
+    - ${backend.entrypoint}
+    - ${backend.config_flag}=${backend.config_file}
+
+aux:
+  seed: 123
+  # No SiLU on q/k/v in our layer's arms: the setting the flame reference runs
+  # use, and the default for every campaign from 2026-09-11 on. It selects the
+  # `-nosilu` flavor (resolvers.flavor); gdn and attn are upstream layers and
+  # keep theirs. A campaign whose runs started with SiLU pins it false, because a
+  # restart re-reads the flavor and would otherwise change the model under it.
+  drop_silu: true

@@ -1,0 +1,311 @@
+# @package _global_
+# 1.3B / 100BT on FineWeb-Edu: the setup other groups publish linear-attention
+# results in, with this study's arms placed in it.
+#
+#   4 arms (kda-sig-lowrank, ckda-shipped-lowrank and their 3:1 hybrids)
+#   x 1.3B x 100BT, cosine
+#
+# The recipe is Gated DeltaNet's 1.3B setup (arXiv:2412.06464). Its Table 3
+# is the 1.3B/100BT FineWeb-Edu table later papers copy rows from, and a row
+# is only comparable to it if it was trained the way that table was. From the
+# paper:
+#
+#   "100B tokens sampled from FineWeb-Edu"  sample-100BT, one pass
+#   "Llama2 tokenizer, vocabulary 32,000"   data/fineweb_edu_llama2.yaml
+#   "training length ... 4K tokens"         seq 4096
+#   "batch size of 0.5M tokens"             gbs 128 x 4096 = 524,288
+#   "AdamW ... peak learning rate 4e-4"     lr 4e-4
+#   "weight decay 0.1, clipping 1.0"        the backend's, both
+#   "cosine ... with a 1B token warm-up"    1,908 warm steps, then cosine
+#
+# and what the paper leaves out, from its code (NVlabs/GatedDeltaNet):
+#
+#   pretrain.py   min_lr = lr / 10; warmup from 0 over 1% of the tokens;
+#                 betas 0.9/0.95 and torch's eps 1e-8; weight decay on EVERY
+#                 parameter (model.parameters() as one AdamW group); seed 3407
+#   tokenizer.py  encode(bos=False, eos=True): `</s>` after every document
+#
+# The geometry is fla-hub's Transformer++ 1.3B -- GDN's repository carries no
+# baseline configs -- with every arm parameter-matched to it:
+# replication_1p3B.json, from replication_1p3B.py.
+#
+# WHAT IS NOT THEIRS, stated rather than hidden:
+#
+#   * the arms: the KDA baseline is the bounded sigmoid gate (kda-sig), not
+#     fla's softplus that the GDN and KDA papers run; the signed arm starts
+#     from the shipped init; both take fla's factored (low-rank) output gate
+#     rather than K3's full-rank one; and neither has SiLU on q/k/v
+#     (aux.drop_silu). head_dim is 128, and the hybrids keep gated NoPE
+#     attention every 4th layer. So the claim this campaign can support is
+#     "our layer, at their setup" -- measured against their published table,
+#     not a reproduction of the paper's KDA row.
+#   * the initialization: fla's own HF `_init_weights` throughout, with
+#     A_log = 0 for every gate, where GDN's code uses a Mamba-style init.
+#   * the data order: one pass through a seeded shard interleave
+#     (data/prepare_fineweb_edu.py) rather than LitGPT's shuffled chunks.
+#
+# One place the paper and the code disagree: GDN's public example script
+# trains its 0.4B/15BT model at 2M tokens a batch (tsz512x4k). The paper says
+# 0.5M, and this follows the paper.
+#
+# The comparison with their table is DOWNSTREAM: lm-eval-harness on the final
+# checkpoint -- wikitext and LAMBADA perplexity; LAMBADA, PIQA, HellaSwag,
+# WinoGrande, ARC-e/c, SIQA and BoolQ accuracy. The validation loss below
+# compares our arms with each other, on our held-out split, and with no one
+# else.
+# HOW TO READ THIS FILE, beside `ladder.yaml`. That sweep has three groups --
+# which layer, which cell, which stages. This campaign has exactly one cell and
+# one stage, so only the first is a group here and the other two are pinned in
+# `aux`:
+#
+#   WHICH LAYER   the sweep at the bottom: four arms, two pairs
+#   WHICH CELL    one geometry (1.3B) at one budget (100BT), `aux.size`,
+#                 `aux.tokens`, `aux.gbs`, `aux.lr` -- the published recipe's,
+#                 not a fitted optimum, because the point is to match a table
+#   WHICH STAGE   one uninterrupted cosine run per arm: `aux.cooldown_steps: 0`
+#                 and no stage group at all. Nothing branches, nothing resumes
+#                 except at a wall
+#
+# The backend is torchtitan, as it is for the ladder: `/backend: titan` from
+# `../autoexp` launches `-m torchtitan.train` and registers this repo's arms
+# through `custom_import: lm_scaling.titan_ext`.
+defaults:
+  - ../autoexp
+  - base
+  - override /data: fineweb_edu_llama2
+  - _self_
+
+aux:
+  campaign: fwedu_1p3B
+  # No SiLU on q/k/v, as in the flame reference runs. Stated rather than
+  # inherited: this campaign is compared against a published table, so what it
+  # runs has to be readable here.
+  drop_silu: true
+  # Swept below. The default is the first point rather than a placeholder, so
+  # a bare `-m` run is a real job and the root config resolves against a
+  # geometry the table actually carries.
+  model: kda-sig-lowrank
+  size: 1.3B
+  # GDN's pretrain.py.
+  seed: 3407
+
+  # One budget, one batch, one learning rate: the recipe's, not the fitted
+  # law's. Written as FLOATS on purpose. PyYAML reads `100e9` as the string
+  # "100e9", `oc.cdivi` returns 0 for a string it cannot int(), and a run of
+  # zero steps plans without a word.
+  tokens: 1.0e+11
+  gbs: 128
+  lr: 0.0004
+
+  # "a 1B token warm-up", which is GDN's 1% of the budget: 1,908 steps of
+  # 524,288 tokens.
+  warmup_tokens: 1.0e+9
+  warmup_steps: ${oc.cdivi:${aux.warmup_tokens},${aux.tok_per_step}}
+
+  # COSINE over everything after the warmup, down to GDN's min_lr = lr / 10,
+  # and no cooldown phase. A WSD tail here would give our endpoint a schedule
+  # the table it is compared against did not have.
+  lr_min_ratio: 0.1
+  cooldown_steps: 0
+  stage_tag: "cosine${budget_tag:${aux.tokens}}"
+
+  # HOW WIDE, and the same width for every arm on purpose.
+  #
+  # Pinned rather than derived per arm, so all four run the identical step:
+  # mbs 4 at 32 GPUs, with no gradient accumulation anywhere. A comparison in
+  # which one arm accumulates and another does not differs in more than the
+  # thing being compared.
+  #
+  # 8 nodes: 32 GPUs, 4 sequences each per step, which is 128 / 32.
+  nodes: 8
+
+  # Which ceiling table to read. The `_g4` rows were measured on ONE node and
+  # are a FLOOR at 32: FSDP shards parameters, gradients and optimizer state
+  # over every rank, so the fixed cost per GPU only falls as the world grows.
+  #
+  # MEASURED FOR THESE ARMS, at this geometry -- peak_mbs.yaml carries a 4 for
+  # each, and token_rate.yaml their rates. Re-probe before spending three
+  # thousand GPU-hours against an assumption if anything about the arms or the
+  # stack changes:
+  #
+  #   lm_scaling/login_run lm_scaling/titan_mbs_probe.py fwedu_1p3B --out DIR -o ++aux.peak=4
+  #   lm_scaling/login_run lm_scaling/titan_mbs_probe.py fwedu_1p3B --out DIR --collect
+  #
+  # The `-o` lets the probe's first pass resolve against a table without the
+  # entry; the probes themselves pin their own micro-batch (overlay/mbs.yaml).
+  regime: ${cluster.gpu}_seq${data.seq_len}_${backend.name}_g4
+
+  # A checkpoint every ~5BT: twenty over the run, all of them kept
+  # (keep_latest_k 0), so downstream evaluation can be read along training
+  # and not only at its end. At the measured 32-GPU rates that is 1.5-1.65
+  # hours apart. A 12-hour wall does not cost that much: titan_ext/wall.py
+  # saves once more about three minutes before it, and the requeue resumes
+  # from there.
+  ckpt_tokens: 5.0e+9
+  ckpt_raw: ${oc.cdivi:${aux.ckpt_tokens},${aux.tok_per_step}}
+
+  # 32 validations, the last on the final step: 5,968 divides 190,976.
+  min_evals: 32
+
+  # ----------------------------------------------------------------------
+  # Derived quantities. Every one of these is an interpolation and not a
+  # number, so a value cannot be stated twice and disagree with itself -- the
+  # failure that OOM'd a whole campaign when the micro-batch ceiling lived in
+  # three files.
+  # ----------------------------------------------------------------------
+
+  # The parameter count this arm is matched to, cited from the table rather
+  # than restated: replication_1p3B.json, through resolvers.matched.
+  n_params: ${matched:${aux.size},${aux.model},N}
+
+  # --- micro-batch, composed in three visible steps ------------------------
+  # Not one `${micro_batch:...}` resolver: the cap, the divisibility and the
+  # fallback are three decisions, and each has to be readable and overridable
+  # on its own.
+  #
+  # `peak` is a MEASURED ceiling and a missing entry RAISES (resolvers.peak_mbs)
+  # -- an unmeasured ceiling that returns something plausible is how four arms
+  # once OOM'd five minutes in.
+  peak_section: ${aux.regime}
+  peak: ${peak_mbs:${aux.peak_section},${aux.size},${aux.model}}
+
+  # The WORLD, not one node. FSDP shards parameters, gradients and optimizer
+  # state over every rank, so a global batch computed for one node's GPUs and
+  # run on eight is a batch nobody chose. From `aux.nodes` and NOT from
+  # `slurm.sbatch.nodes`, which are the same number in a campaign and
+  # deliberately different in a speed probe (the `probe` overlay).
+  world_gpus: ${oc.muli:${backend.gpus_per_node},${aux.nodes}}
+
+  # 128 sequences over 32 GPUs is 4 each, and 4 is also the measured ceiling,
+  # so every arm runs at accumulation 1.
+  per_gpu: ${oc.divi:${aux.gbs},${aux.world_gpus}}
+  mbs: "${oc.eval:'max(d for d in range(1, ${aux.per_gpu} + 1) if ${aux.per_gpu} % d == 0 and d <= ${aux.peak})'}"
+  grad_accum: ${oc.divi:${aux.per_gpu},${aux.mbs}}
+
+  # --- step arithmetic -----------------------------------------------------
+  tok_per_step: ${oc.muli:${aux.gbs},${data.seq_len}}
+
+  # EVERY step count is a multiple of `grid`, and that is what makes the
+  # endpoint measurable at all.
+  #
+  # torchtitan validates inside the training loop and nowhere else --
+  # `step == 1 or step % freq == 0`, with no evaluation after the loop ends --
+  # so the final step is validated only if `freq` divides `steps`. Picking
+  # `freq` as a divisor of whatever `steps` happened to be does not work: a
+  # prime step count has none. Putting `steps` on a grid instead makes a good
+  # `freq` exist by construction -- 256 = 2^8 brings its own divisors.
+  #
+  # The price is that the budget rounds UP by at most 256 steps, 0.13% here.
+  grid: 256
+
+  # The checkpoint period, on the grid: torchtitan saves on a fixed PERIOD and
+  # not at named steps.
+  ckpt_interval: "${oc.eval:'((${aux.ckpt_raw} + ${aux.grid} - 1) // ${aux.grid}) * ${aux.grid}'}"
+
+  full_raw: ${oc.cdivi:${aux.tokens},${aux.tok_per_step}}
+  full_steps: "${oc.eval:'((${aux.full_raw} + ${aux.grid} - 1) // ${aux.grid}) * ${aux.grid}'}"
+
+  # What this job's endpoint really is in tokens, after the grid rounding.
+  # Recorded because a result should be reported at the budget it trained,
+  # not the one it is named for.
+  actual_tokens: ${oc.muli:${aux.steps},${aux.tok_per_step}}
+
+  # One uninterrupted run: `steps` is where it stops and `run_steps` is what
+  # it costs, and here they are the same. They differ for a stage that resumes
+  # from a branch and runs only a tail.
+  steps: ${aux.full_steps}
+  run_steps: ${aux.steps}
+
+  # HOW OFTEN TO VALIDATE, and it has to be a DIVISOR of `steps` -- see
+  # `grid`. The LARGEST such divisor that still fits `min_evals` evaluations
+  # into the run, because each one costs `eval_sequences` forward passes and
+  # the cheapest schedule that answers the question is the right one. If a
+  # step count has no such divisor this RAISES, rather than quietly
+  # validating every step or skipping the end.
+  eval_freq: "${oc.eval:'max(d for d in range(1, ${aux.run_steps} + 1) if ${aux.steps} % d == 0 and d * ${aux.min_evals} <= ${aux.run_steps})'}"
+
+  # torchtitan's compile scope, and the rule is ATTENTION OR NOT. Measured on
+  # GH200: attention gains 12.8-37.0%, the linear arms are noise to NEGATIVE.
+  # inductor's win here is fusing the elementwise work around dense GEMMs, and
+  # the fla kernels are already single fused Triton launches -- there is
+  # nothing left to fuse, and wrapping them costs guard evaluation per block.
+  # None of the four arms this campaign runs is `attn`, so all four take
+  # `loss`; the branch is kept so the reference arm stays one line to add.
+  compile_components: ${oc.if:${oc.eq:${aux.model},attn},model+loss,loss}
+
+# The name carries what distinguishes a run -- arm, geometry, schedule, batch,
+# learning rate -- so two campaigns cannot share a directory, and a directory
+# says what it holds without a lookup. `base_output_dir` derives from it;
+# nothing rebuilds it, because a run name built twice is how 36 jobs once
+# resolved a checkpoint in a directory nothing had written to.
+job:
+  name: ${aux.campaign}_${aux.model}_${aux.size}_${aux.stage_tag}_gbs${aux.gbs}_lr${aux.lr}
+  base_output_dir: ${cluster.runs_dir}/${aux.campaign}/${job.name}
+  # Done when the artefact exists, not when a log line says so. A completion
+  # string is a promise about a log format nobody here has verified.
+  finish_condition:
+    class_name: FileExistsCondition
+    path: ${job.base_output_dir}/checkpoint/step-${aux.steps}
+
+backend:
+  titan:
+    lr_scheduler:
+      # titan-oellm's universal scheduler with its MAIN phase decaying -- the
+      # "pure cosine annealing" form in its own docstring. The LR falls from
+      # peak to max(lr_min_absolute, main_decay_ratio x peak) across
+      # steps - warm_steps - cooldown_steps.
+      main_decay_type: cosine
+      main_decay_ratio: ${aux.lr_min_ratio}
+      # 0, because titan-oellm warms up FROM lr_min_absolute and GDN's get_lr
+      # warms up from zero. The floor then comes from main_decay_ratio alone:
+      # 4e-5, GDN's min_lr.
+      lr_min_absolute: 0.0
+    validation:
+      # Exactly `eval_sequences`, split over EVERY rank: 20 steps x 4 x 32
+      # ranks = 2,560. Across the WORLD and not one node's GPUs -- dividing by
+      # `gpus_per_node` scores `eval_sequences x nodes`, which is exact on one
+      # node and eight times too many here. backend/titan.yaml computes the
+      # same; it is restated so this campaign's validation set is readable
+      # without resolving the chain.
+      steps: ${oc.divi:${data.eval_sequences},${oc.muli:${aux.mbs},${aux.world_gpus}}}
+
+slurm:
+  sbatch:
+    nodes: ${aux.nodes}
+    # No `time` here. The wall limit is the cluster's, and an experiment that
+    # pins it silently makes itself unsubmittable on any machine but the one
+    # it was written for. titan_ext/wall.py saves a checkpoint just before
+    # whatever the limit turns out to be, and the monitor requeues.
+  env:
+    # Weight decay on every parameter, as GDN's AdamW has it -- norms, biases
+    # and A_log included, which the study otherwise exempts
+    # (titan_ext/optimizer.py).
+    TITAN_EXT_DECAY_ALL: "1"
+
+sweep:
+  type: product
+  groups:
+
+    # --- GROUP 1: WHICH LAYER ----------------------------------------------
+    #
+    # And the only group: see the header. Their kwargs are in
+    # replication_1p3B.json and nowhere else.
+    #
+    # Two pairs, and THE PAIRING IS THE EXPERIMENT: kda-sig and ckda-shipped
+    # differ in the gate and in allow_neg_eigval and in nothing else, and the
+    # two hybrids differ the same way inside a 3:1 stack. Everything else --
+    # width, data, order, seed, schedule -- is shared, which is what makes the
+    # difference between a pair attributable to the gate.
+    #
+    # `attn` is in the table as the parameter reference and deliberately NOT
+    # here: the published Transformer++ row is the baseline. It is one line to
+    # add, and worth adding if our numbers land far from the published ones,
+    # because it separates "our pipeline" from "our layer". It would run 16
+    # heads of 128 where the published model has 32 of 64 -- the same
+    # parameter count.
+    - type: list
+      configs:
+        - aux.model: kda-sig-lowrank
+        - aux.model: ckda-shipped-lowrank
+        - aux.model: kda-sig-hybrid-lowrank
+        - aux.model: ckda-shipped-hybrid-lowrank

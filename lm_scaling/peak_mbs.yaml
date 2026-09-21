@@ -1,0 +1,80 @@
+# Largest per-GPU micro-batch measured to fit, by stack, GPU, context, arch
+# and rung.
+#
+# Sections are `<gpu>_seq<context>_<stack>_g<world GPUs>`, and every one of
+# those five changes the answer:
+#
+#   GPU       a GH200 holds three times an A100-40GB.
+#   context   attention holds its ceiling from 2048 to 4096 (flash attention
+#             is O(T) in memory) while the linear arms halve -- chunked linear
+#             attention carries per-chunk recurrent state.
+#   stack     measured, not assumed. Different model construction, different
+#             FSDP wrapping, different activation lifetimes: a ceiling
+#             measured under one trainer and handed to another is how four
+#             arms OOM'd five minutes into a campaign.
+#   world     FSDP shards parameters, gradients and optimizer state over
+#             every rank, so the fixed cost per GPU halves when the world
+#             doubles.
+#   arch      one number per rung either OOMs the heaviest arm or hands the
+#             lightest half the micro-batch it could use.
+#
+# Nothing here is interpolated along any of the five axes. A missing entry
+# RAISES (see resolvers.peak_mbs) -- an unmeasured ceiling that returns
+# something plausible is exactly what those OOMs were.
+#
+# POWERS OF TWO in the `_titan` sections: only a power-of-two micro-batch
+# divides a power-of-two per-GPU batch with integral gradient accumulation.
+#
+# Measured by lm_scaling/titan_mbs_probe.py -- one short run of the
+# campaign's OWN job per candidate, with local_batch_size overridden, so what
+# was measured is what will run.
+
+gh200_seq4096_titan_g4:
+  # 1.3B, the FineWeb-Edu replication's geometry (replication_1p3B.json).
+  # Every arm reaches a step at mbs 4 with 53-61 GB of a GH200 in use. 4 is
+  # also the most this campaign can use -- 128 sequences over 32 GPUs -- so
+  # nothing above it was probed, and it bounds nothing larger.
+  kda-sig-lowrank|1.3B: 4
+  ckda-shipped-lowrank|1.3B: 4
+  kda-sig-hybrid-lowrank|1.3B: 4
+  ckda-shipped-hybrid-lowrank|1.3B: 4
+
+  # --- the scaling ladder's six rungs -------------------------------------
+  # Measured the same way, by titan_mbs_probe.py, at each rung's own
+  # geometry. A missing entry RAISES rather than interpolating.
+  attn|47M: 16
+  attn|124M: 16
+  attn|302M: 4
+  attn|588M: 8
+  attn|983M: 8
+  attn|1.7B: 8
+  gdn|47M: 16
+  gdn|124M: 16
+  gdn|302M: 16
+  gdn|588M: 8
+  gdn|983M: 8
+  gdn|1.7B: 4
+  kda-sig-lowrank|47M: 16
+  kda-sig-lowrank|124M: 16
+  kda-sig-lowrank|302M: 8
+  kda-sig-lowrank|588M: 8
+  kda-sig-lowrank|983M: 4
+  kda-sig-lowrank|1.7B: 4
+  ckda-shipped-lowrank|47M: 16
+  ckda-shipped-lowrank|124M: 16
+  ckda-shipped-lowrank|302M: 8
+  ckda-shipped-lowrank|588M: 8
+  ckda-shipped-lowrank|983M: 4
+  ckda-shipped-lowrank|1.7B: 4
+  kda-sig-hybrid-lowrank|47M: 16
+  kda-sig-hybrid-lowrank|124M: 16
+  kda-sig-hybrid-lowrank|302M: 16
+  kda-sig-hybrid-lowrank|588M: 8
+  kda-sig-hybrid-lowrank|983M: 8
+  kda-sig-hybrid-lowrank|1.7B: 4
+  ckda-shipped-hybrid-lowrank|47M: 16
+  ckda-shipped-hybrid-lowrank|124M: 16
+  ckda-shipped-hybrid-lowrank|302M: 8
+  ckda-shipped-hybrid-lowrank|588M: 8
+  ckda-shipped-hybrid-lowrank|983M: 4
+  ckda-shipped-hybrid-lowrank|1.7B: 4

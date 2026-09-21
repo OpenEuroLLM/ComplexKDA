@@ -1,0 +1,66 @@
+# Ajroldi et al.'s corpus and tokenizer, at their context -- the "niccolo"
+# pretokenization on JUPITER, train and held-out both.
+#
+# Every number below was read off the .idx headers on the login node
+# (lm_scaling/data/verify_corpus.py re-reads them), not copied from a note.
+class_name: Data
+name: nemotron_cc_high_neox
+format: megatron_indexed
+tokenizer: EleutherAI/gpt-neox-20b
+vocab_size: 50304
+
+# The 15% downsample: 665,613,726 documents, 318,592,619,699 tokens, uint16.
+# Single-epoch at every budget on the ladder -- 20BT is 6% of it -- which is
+# why an annealing has to CONTINUE the stream rather than restart it.
+#
+# This is the published copy under the shared `datasets` group. The
+# oellm-autoexp configs name /e/project1/jureap59/poeppel1/data/... for the
+# same shards; that path no longer exists.
+prefix: ${oc.env:NEOX_CORPUS,/e/data1/datasets/products/openeurollm/pretokenized/neox}/copy_nemotron_downsampled_15p/high-all
+train_tokens: 318592619699
+
+# The held-out split: a SEPARATE 5% downsample, disjoint from the 15% above --
+# 221,617,471 documents, 106,105,926,671 tokens. The neighbouring experiments
+# score against this same corpus (their Megatron caches record it at 6,400
+# samples, seq 4096, GPT-NeoX-20B), so the TEXT is the same -- but they draw
+# it through Megatron's shuffled index with seed 1234 and a 969/30/1 slice,
+# while our reader takes contiguous windows from the top. Same corpus, not the
+# same sample: our losses are comparable across OUR arms, not against theirs.
+#
+# NOT the path in oellm-autoexp's `nemonicco_jupiter`
+# (/e/scratch/projectnucleus/poeppel1/datasets/...): that directory is
+# drwxrws--- on group `projectnucleus`, which this account is not in, and it
+# fails with EACCES. This is the copy under our own project, same data.
+#
+# Carving a split out of the training corpus instead would have been wrong
+# twice: the tail of an unshuffled corpus is not the distribution of its head,
+# and there is no need -- this exists.
+valid_prefix: ${oc.env:NEOX_VALID,/e/project1/e-sta-openeurollm/poeppel1/datasets}/nemotron_downsampled_5p_valid/high-all
+valid_tokens: 106105926671
+
+# 4096, matching Ajroldi et al. exactly: their held-out set is "204,800
+# sequences (0.838BT)", i.e. 4092 tokens per sequence. Their fitted b* is in
+# SEQUENCES, so the context length is what makes the fitted optimum apply --
+# it is not a free knob here.
+#
+# Nothing needs re-tokenizing: the reader cuts the flat token stream into
+# seq_len+1 windows at READ time and ignores document boundaries, so the
+# .bin/.idx are unchanged.
+seq_len: 4096
+tie_embeddings: true
+
+# How many held-out sequences each evaluation scores -- a DECISION, not a
+# property of the split, which holds 25,898,444 windows at this context.
+#
+# torchtitan divides the summed validation loss by the step count, so the
+# number of windows consumed has to be exact and identical across arms; the
+# validation block derives `steps` from this and the micro-batch. Every rank
+# reads a contiguous block from its own quarter of the split, from the top,
+# every time -- so the same 2,560 sequences are scored at every evaluation of
+# every run, and the arms are compared on identical text.
+#
+# 2,560 x 4096 = 10.5M tokens, matching the 10,001,024 the GPT-2 corpus held
+# out, where the sampling noise was measured small but not zero. At 50
+# evaluations that is 0.52BT of forward passes, under 1% of a 20BT run.
+# Ajroldi's full 204,800 would be 42BT -- twice the training budget.
+eval_sequences: 2560

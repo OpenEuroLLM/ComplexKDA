@@ -1,0 +1,93 @@
+{
+  "tag": "1.3B",
+  "d_model": 2048,
+  "n_layers": 24,
+  "n_heads": 16,
+  "head_dim": 128,
+  "vocab_size": 32000,
+  "seq_len": 4096,
+  "tie_word_embeddings": false,
+  "target_N": 1364297728,
+  "reference": "fla-hub/transformer-1.3B-100B",
+  "source": "lm_scaling/replication_1p3B.py, arms from param_match.ARCHS",
+  "archs": {
+    "attn": {
+      "d_ffn": 5632,
+      "N": 1364297728,
+      "delta_pct": 0.0,
+      "arch": "attn",
+      "mixer": null,
+      "kwargs": {}
+    },
+    "kda-sig-lowrank": {
+      "d_ffn": 5440,
+      "N": 1362630016,
+      "delta_pct": -0.1222395937318456,
+      "arch": "complex-kda",
+      "mixer": "complex-kda",
+      "kwargs": {
+        "allow_neg_eigval": false,
+        "lower_bound": -5.0,
+        "expand_v": 1.0,
+        "gate": "sigmoid",
+        "gate_init_style": "shipped",
+        "output_gate": "lowrank"
+      }
+    },
+    "ckda-shipped-lowrank": {
+      "d_ffn": 5440,
+      "N": 1362630016,
+      "delta_pct": -0.1222395937318456,
+      "arch": "complex-kda",
+      "mixer": "complex-kda",
+      "kwargs": {
+        "allow_neg_eigval": true,
+        "lower_bound": -5.0,
+        "expand_v": 1.0,
+        "gate": "signed_sigmoid2",
+        "gate_init_style": "shipped",
+        "output_gate": "lowrank"
+      }
+    },
+    "kda-sig-hybrid-lowrank": {
+      "d_ffn": 5312,
+      "N": 1362260512,
+      "delta_pct": -0.1493234180626005,
+      "arch": "complex-kda",
+      "mixer": "complex-kda",
+      "kwargs": {
+        "allow_neg_eigval": false,
+        "lower_bound": -5.0,
+        "expand_v": 1.0,
+        "gate": "sigmoid",
+        "gate_init_style": "shipped",
+        "output_gate": "lowrank"
+      },
+      "hybrid": {
+        "attn_every": 4,
+        "attn_output_gate": true,
+        "attn_use_rope": false
+      }
+    },
+    "ckda-shipped-hybrid-lowrank": {
+      "d_ffn": 5312,
+      "N": 1362260512,
+      "delta_pct": -0.1493234180626005,
+      "arch": "complex-kda",
+      "mixer": "complex-kda",
+      "kwargs": {
+        "allow_neg_eigval": true,
+        "lower_bound": -5.0,
+        "expand_v": 1.0,
+        "gate": "signed_sigmoid2",
+        "gate_init_style": "shipped",
+        "output_gate": "lowrank"
+      },
+      "hybrid": {
+        "attn_every": 4,
+        "attn_output_gate": true,
+        "attn_use_rope": false
+      }
+    }
+  }
+}

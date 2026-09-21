@@ -1,0 +1,20 @@
+{
+  "model": "/e/scratch/e-sta-openeurollm/poeppel1/eval_fwedu/export/ckda-shipped-lowrank_step190976",
+  "tokenizer": null,
+  "tasks": [
+    "wikitext",
+    "lambada_openai",
+    "piqa",
+    "hellaswag",
+    "winogrande",
+    "arc_easy",
+    "arc_challenge",
+    "openbookqa",
+    "social_iqa",
+    "boolq"
+  ],
+  "context_prefix": "none",
+  "context_prefix_ids": [],
+  "max_length": 4096,
+  "limit": null
+}

@@ -1,0 +1,58 @@
+{
+  "source": "Gated DeltaNet-2: Decoupling Erase and Write in Linear Attention, arXiv:2605.22791v1, Table 3",
+  "caption": "Accuracy on Single Needle-In-A-Haystack (S-NIAH) and Multi-Key Needle-In-A-Haystack (MK-NIAH) tasks from RULER.",
+  "setup": "1.3B parameters, 100B tokens of FineWeb-Edu, 4K training sequences -- the same recipe as this campaign's Table 2 comparison in published_gdn2_1p3B.json.",
+  "metrics": "Percentages, RULER's own substring match over 500 samples a cell. Every published value is a multiple of 0.2 = 1/500, which is what makes the sample count checkable rather than assumed; a test enforces it.",
+  "grid": "S-NIAH-1 and S-NIAH-2 are reported at 1K/2K/4K/8K, S-NIAH-3 and MK-NIAH-1 at 1K/2K/4K only. The missing 8K cells are not zeros -- they were not run -- so they are absent here rather than null.",
+  "note": "ONLY THE RECURRENT BLOCK is transcribed. The paper's second block is hybrid, and its hybrids interleave 2K SLIDING-WINDOW attention where ours place full NoPE attention every fourth layer; those are different designs and comparing them reads as a result about the gate. The same exclusion is argued in published_gdn2_1p3B.json's note.",
+  "tasks": {
+    "s-niah-1": "niah_single_1",
+    "s-niah-2": "niah_single_2",
+    "s-niah-3": "niah_single_3",
+    "mk-niah-1": "niah_multikey_1"
+  },
+  "rows": {
+    "Mamba-2": {
+      "s-niah-1": {"1024": 100.0, "2048": 100.0, "4096": 97.0, "8192": 55.8},
+      "s-niah-2": {"1024": 99.6, "2048": 99.6, "4096": 62.6, "8192": 21.0},
+      "s-niah-3": {"1024": 59.2, "2048": 38.6, "4096": 14.4},
+      "mk-niah-1": {"1024": 29.0, "2048": 21.2, "4096": 21.4},
+      "group": "recurrent"
+    },
+    "Gated DeltaNet": {
+      "s-niah-1": {"1024": 99.8, "2048": 100.0, "4096": 100.0, "8192": 97.6},
+      "s-niah-2": {"1024": 100.0, "2048": 100.0, "4096": 87.2, "8192": 32.0},
+      "s-niah-3": {"1024": 89.8, "2048": 54.2, "4096": 60.6},
+      "mk-niah-1": {"1024": 58.0, "2048": 37.0, "4096": 27.8},
+      "group": "recurrent"
+    },
+    "KDA": {
+      "s-niah-1": {"1024": 100.0, "2048": 100.0, "4096": 99.2, "8192": 70.6},
+      "s-niah-2": {"1024": 100.0, "2048": 100.0, "4096": 89.0, "8192": 30.6},
+      "s-niah-3": {"1024": 77.4, "2048": 63.2, "4096": 26.2},
+      "mk-niah-1": {"1024": 54.0, "2048": 44.2, "4096": 28.0},
+      "group": "recurrent"
+    },
+    "Mamba-3 (SISO)": {
+      "s-niah-1": {"1024": 100.0, "2048": 99.0, "4096": 63.4, "8192": 27.8},
+      "s-niah-2": {"1024": 99.8, "2048": 99.0, "4096": 59.4, "8192": 25.2},
+      "s-niah-3": {"1024": 60.2, "2048": 35.6, "4096": 12.2},
+      "mk-niah-1": {"1024": 44.8, "2048": 27.4, "4096": 20.2},
+      "group": "recurrent"
+    },
+    "Mamba-3 (MIMO)": {
+      "s-niah-1": {"1024": 100.0, "2048": 99.8, "4096": 93.0, "8192": 35.6},
+      "s-niah-2": {"1024": 99.8, "2048": 98.8, "4096": 64.2, "8192": 27.2},
+      "s-niah-3": {"1024": 89.2, "2048": 72.4, "4096": 29.2},
+      "mk-niah-1": {"1024": 49.4, "2048": 19.2, "4096": 18.0},
+      "group": "recurrent"
+    },
+    "Gated DeltaNet-2": {
+      "s-niah-1": {"1024": 100.0, "2048": 100.0, "4096": 100.0, "8192": 97.8},
+      "s-niah-2": {"1024": 100.0, "2048": 100.0, "4096": 93.0, "8192": 39.2},
+      "s-niah-3": {"1024": 92.0, "2048": 89.8, "4096": 31.8},
+      "mk-niah-1": {"1024": 72.6, "2048": 51.4, "4096": 37.8},
+      "group": "recurrent"
+    }
+  }
+}

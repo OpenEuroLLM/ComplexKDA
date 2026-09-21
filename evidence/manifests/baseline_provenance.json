@@ -1,0 +1,38 @@
+{
+  "source_snapshot": {
+    "public_repository": "git@github.com:automl/ComplexKDA.git",
+    "history_free_import_source_revision": "7a4f514dccc597c64e16e9a9858f0fdbcbe970db"
+  },
+  "periodic_waveform": {
+    "kda_variants": {
+      "implementation": "fla/layers/complex_kda_layer.py:ComplexKimiDeltaAttention",
+      "conceptual_source": "Kimi Linear: An Expressive, Efficient Attention Architecture",
+      "source_url": "https://arxiv.org/abs/2510.26692",
+      "local_changes": "signed gate, beta range control, spread initializations, and sign gauge"
+    },
+    "gru": {
+      "implementation": "torch.nn.GRU wrapped by audio_toys/train_groove_waveform.py:WaveformGRU",
+      "external_checkpoint": false
+    },
+    "causal_transformer": {
+      "implementation": "torch.nn.MultiheadAttention wrapped by audio_toys/train_groove_waveform.py:WaveformTransformer",
+      "position_encoding": "fixed sinusoidal",
+      "external_checkpoint": false
+    },
+    "deltaproduct2_control": {
+      "implementation": "fla/layers/gated_deltaproduct.py:GatedDeltaProduct",
+      "conceptual_source": "DeltaProduct: Improving State-Tracking in Linear RNNs via Householder Products",
+      "source_url": "https://arxiv.org/abs/2502.10297",
+      "external_checkpoint": false
+    },
+    "rope_controls": {
+      "implementation": "local WaveformTransformer code; these are controls, not imported reference implementations",
+      "external_checkpoint": false
+    }
+  },
+  "state_tracking": {
+    "all_models": "local implementations in group_word_problems/train_wordproblem.py and bundled FLA layers",
+    "external_checkpoints": false
+  },
+  "version_policy": "Every result row records its effective configuration. Reproductions should additionally record the git revision and Python package environment alongside generated artifacts."
+}

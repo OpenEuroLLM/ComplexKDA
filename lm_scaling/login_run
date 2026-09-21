@@ -1,0 +1,27 @@
+#!/bin/bash
+# Run an orchestration command in the LOGIN venv -- the one that can reach slurm.
+#
+#   lm_scaling/login_run lm_scaling/plan.py ladder
+#   lm_scaling/login_run lm_scaling/submit.py ladder --write --run
+#
+# The counterpart to `container_run`, and the split between them is `sbatch`:
+# it is a host binary talking to the slurm controller, and the container does
+# not have it. Anything that submits, polls or cancels runs here; anything that
+# builds a model runs in the container. The training job itself needs neither
+# wrapper -- the rendered sbatch enters the container on its own, through
+# `slurm.launcher_cmd`.
+#
+# Build the venv with `lm_scaling/make_login_venv.sh`.
+set -eu
+
+REPO=${CKDA_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+VENV=${CKDA_VENV:-$REPO/.venv}
+
+[ -x "$VENV/bin/python3" ] || {
+  echo "no login venv at $VENV -- run lm_scaling/make_login_venv.sh" >&2
+  exit 1
+}
+
+export PYTHONPATH="$REPO:$REPO/lm_scaling${PYTHONPATH:+:$PYTHONPATH}"
+export CKDA_REPO="$REPO"
+exec "$VENV/bin/python3" "$@"

@@ -1,0 +1,65 @@
+# The scaling ladder, as data.
+#
+# `ladder.py` is only a loader over this file. The point is that the
+# geometry, the budgets and the fitted hyperparameter laws are things to
+# reason about and edit directly, without reading Python to find out what the
+# experiment actually is.
+#
+# `scaling` is the transformer ladder of Ajroldi et al., "Deriving Scaling
+# Laws for OpenEuroLLM Models" (arXiv:2608.28308). Adopted VERBATIM, because
+# its fitted laws are only meaningful at the N it fitted them on.
+#
+# NOTE on float syntax: PyYAML's 1.1 resolver needs a decimal point and a
+# signed exponent to read a number as a float -- `6e9` parses as the STRING
+# "6e9", `6.0e+9` parses as 6000000000.0. Every exponent below is written in
+# the safe form, and tests/lm/test_ladder_yaml.py asserts the loaded values
+# against the constants this file replaced.
+
+scaling:
+  source: "arXiv:2608.28308 Table 1"
+
+  # 4096, not 2048. The paper's held-out set is "204,800 sequences (0.838BT)"
+  # -- 0.838e9 / 204800 = 4092 tokens per sequence. Its fitted optimal batch
+  # size is in SEQUENCES, so running the same b* at 2048 feeds half the tokens
+  # per step the law assumes and sits off the joint (b*, eta*) optimum in the
+  # one direction the law cannot absorb. Parameter counts are invariant to
+  # this (verified: max_position_embeddings adds no parameters at any rung),
+  # so `ladder_matched.json` does not move -- only the step arithmetic does.
+  seq_len: 4096
+  vocab_size: 50304
+  head_dim: 64
+  tie_embeddings: true
+
+  # (d_model, heads, layers, ffn, the paper's own reported total including
+  # embeddings). All six reproduce to its rounding under param_match.py.
+  rungs:
+    - {tag: "47M",  d_model: 384,  n_heads: 6,  n_layers: 12, d_ffn: 1536, paper_params: 4.76e+7}
+    - {tag: "124M", d_model: 576,  n_heads: 9,  n_layers: 18, d_ffn: 2304, paper_params: 1.245e+8}
+    - {tag: "302M", d_model: 896,  n_heads: 14, n_layers: 20, d_ffn: 3584, paper_params: 3.019e+8}
+    - {tag: "588M", d_model: 1280, n_heads: 20, n_layers: 20, d_ffn: 5120, paper_params: 5.885e+8}
+    - {tag: "983M", d_model: 1536, n_heads: 24, n_layers: 24, d_ffn: 6144, paper_params: 9.831e+8}
+    - {tag: "1.7B", d_model: 2048, n_heads: 32, n_layers: 24, d_ffn: 8192, paper_params: 1.713e+9}
+
+  # Its intermediate decay points, which coincide with the ones the
+  # oellm-autoexp multilingual sweep uses.
+  budgets: [6.0e+9, 1.2e+10, 2.0e+10, 3.0e+10, 5.0e+10, 8.0e+10, 1.2e+11, 2.0e+11, 3.0e+11]
+
+  # Fitted optimal hyperparameters, its Table 2. N is total parameters
+  # INCLUDING the (tied) embeddings; D is tokens.
+  #   b*(N, D)  = coefficient * N**n_exponent * D**d_exponent   [SEQUENCES]
+  #   eta*(N, D) = coefficient * N**n_exponent * D**d_exponent
+  laws:
+    batch_size:
+      coefficient: 0.000099
+      n_exponent: 0.145
+      d_exponent: 0.460
+    lr:
+      coefficient: 0.371396
+      n_exponent: -0.417
+      d_exponent: 0.0862
+
+  # The grids it actually searched. A fitted optimum off the grid is not a
+  # setting anyone ran, so predictions are snapped back onto it.
+  grids:
+    batch_size_log2: {min: 4, max: 10}
+    lr: [0.00025, 0.0005, 0.001, 0.002, 0.004]

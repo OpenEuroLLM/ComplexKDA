@@ -1,0 +1,73 @@
+# Measured TOKENS PER SECOND PER GPU. Data only; the lookup is throughput.py.
+#
+# This file exists because a wall-clock estimate must not round-trip through
+# FLOPs. `throughput.yaml` records TFLOP/s, and turning that back into tokens
+# per second needs a FLOPs-per-token convention -- which has to be the SAME
+# convention the rate was measured under, or the answer is wrong by their
+# ratio. It was not:
+#
+#   torchtitan   6*(nparams - nparams_embedding)
+#                  + 6*n_layers*n_heads*head_dims*seq_len
+#   throughput   6*N_non_embedding
+#
+# The attention term the second one drops is not small at this context. Every
+# number here is read straight off torchtitan's own `tps:` field, so wall
+# clock is tokens / (rate * world GPUs) with nothing in between.
+#
+# The FLOPs convention has a second consequence worth knowing, which is why
+# the MFU column is reporting and not pricing: torchtitan adds that attention
+# term for EVERY arm, including the linear ones, which do not compute it, so
+# two arms' "MFU" are not measured against the same denominator and must not
+# be compared. Tokens per second can be.
+#
+# Sections and entries are keyed exactly as peak_mbs.yaml and throughput.yaml:
+# `<gpu>_seq<context>_<stack>_g<world GPUs>`, then `arch|rung: {mbs: rate}`.
+# Measured by lm_scaling/titan_mbs_probe.py --yaml --unit tps, from the runs
+# that established the micro-batch ceilings.
+
+gh200_seq4096_titan_g4:
+  # 1.3B (replication_1p3B.json), measured at the campaign's own geometry.
+  kda-sig-lowrank|1.3B: {1: 11337, 2: 23610, 4: 34210}
+  ckda-shipped-lowrank|1.3B: {1: 13379, 2: 19301, 4: 32160}
+  kda-sig-hybrid-lowrank|1.3B: {1: 15559, 2: 28543, 4: 34581}
+  ckda-shipped-hybrid-lowrank|1.3B: {1: 14584, 2: 25124, 4: 33769}
+
+  # --- the scaling ladder's six rungs -------------------------------------
+  # Measured the same way, by titan_mbs_probe.py, at each rung's own
+  # geometry. A missing entry RAISES rather than interpolating.
+  attn|47M: {1: 62871, 2: 78918, 4: 245083, 8: 414854, 16: 500798}
+  attn|124M: {1: 43305, 2: 63065, 4: 126598, 8: 221215, 16: 240812}
+  attn|302M: {1: 33627, 2: 77607, 4: 114755, 8: 116189, 16: 118153}
+  attn|588M: {1: 38442, 2: 66673, 4: 75182, 8: 78236}
+  attn|983M: {1: 24079, 2: 44452, 4: 47431, 8: 50135}
+  attn|1.7B: {1: 25272, 2: 29485, 4: 31566, 8: 33349}
+  gdn|47M: {1: 29213, 2: 47082, 4: 129979, 8: 223496, 16: 410691}
+  gdn|124M: {1: 22303, 2: 38566, 4: 76059, 8: 177790, 16: 236009}
+  gdn|302M: {1: 16791, 2: 40897, 4: 70815, 8: 121034, 16: 131017}
+  gdn|588M: {1: 18651, 2: 33611, 4: 64668, 8: 78867}
+  gdn|983M: {1: 15222, 2: 27563, 4: 48353, 8: 51924}
+  gdn|1.7B: {1: 15488, 2: 27059, 4: 32835}
+  kda-sig-lowrank|47M: {1: 23594, 2: 57520, 4: 114430, 8: 222337, 16: 381866}
+  kda-sig-lowrank|124M: {1: 16204, 2: 37093, 4: 61582, 8: 146470, 16: 196985}
+  kda-sig-lowrank|302M: {1: 17248, 2: 32909, 4: 65401, 8: 100122}
+  kda-sig-lowrank|588M: {1: 16988, 2: 28775, 4: 53679, 8: 69319}
+  kda-sig-lowrank|983M: {1: 14274, 2: 23566, 4: 40596}
+  kda-sig-lowrank|1.7B: {1: 13660, 2: 22954, 4: 29477}
+  ckda-shipped-lowrank|47M: {1: 22698, 2: 54247, 4: 85933, 8: 164870, 16: 343440}
+  ckda-shipped-lowrank|124M: {1: 16956, 2: 35438, 4: 69204, 8: 131524, 16: 190972}
+  ckda-shipped-lowrank|302M: {1: 11837, 2: 32228, 4: 63795, 8: 96627}
+  ckda-shipped-lowrank|588M: {1: 15468, 2: 31947, 4: 55965, 8: 63515}
+  ckda-shipped-lowrank|983M: {1: 13796, 2: 22844, 4: 38241}
+  ckda-shipped-lowrank|1.7B: {1: 10162, 2: 22334, 4: 28401}
+  kda-sig-hybrid-lowrank|47M: {1: 31719, 2: 64210, 4: 119920, 8: 215815, 16: 397524}
+  kda-sig-hybrid-lowrank|124M: {1: 22100, 2: 43429, 4: 70533, 8: 137878, 16: 207384}
+  kda-sig-hybrid-lowrank|302M: {1: 18829, 2: 36146, 4: 63441, 8: 104928, 16: 117394}
+  kda-sig-hybrid-lowrank|588M: {1: 18686, 2: 37114, 4: 61606, 8: 72089}
+  kda-sig-hybrid-lowrank|983M: {1: 12458, 2: 30761, 4: 43703, 8: 47545}
+  kda-sig-hybrid-lowrank|1.7B: {1: 13918, 2: 25690, 4: 30048}
+  ckda-shipped-hybrid-lowrank|47M: {1: 26331, 2: 51233, 4: 126042, 8: 249451, 16: 397398}
+  ckda-shipped-hybrid-lowrank|124M: {1: 20481, 2: 40005, 4: 79681, 8: 158553, 16: 197366}
+  ckda-shipped-hybrid-lowrank|302M: {1: 18459, 2: 32662, 4: 75117, 8: 104054}
+  ckda-shipped-hybrid-lowrank|588M: {1: 19219, 2: 31545, 4: 56037, 8: 69099}
+  ckda-shipped-hybrid-lowrank|983M: {1: 13820, 2: 27055, 4: 40778}
+  ckda-shipped-hybrid-lowrank|1.7B: {1: 15645, 2: 25068, 4: 28832}

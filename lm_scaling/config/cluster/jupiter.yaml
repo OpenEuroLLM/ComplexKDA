@@ -1,0 +1,20 @@
+# JUPITER booster: 4x GH200 120GB a node, aarch64.
+class_name: Cluster
+name: jupiter
+gpu: gh200
+# /e/scratch, and the "/e" matters more than the "scratch".
+#
+# /p is mounted on the JUPITER LOGIN NODE and NOT on its compute nodes. A
+# campaign pointed there writes nothing and says nothing: slurm cannot create
+# the output file, apptainer has nothing to bind, and the job still reports
+# COMPLETED with exit 0. Ninety-eight probes did exactly that -- 55 seconds
+# each, no log, no error, perfect exit codes. plan.py now refuses a runs_dir
+# the container does not bind, which is the check that catches it.
+#
+# scratch and not project1 because the campaign keeps every branch point --
+# keep_latest_k is 0, since a checkpoint deleted to save disk is a run that
+# has to be redone -- which is about 1.1 TB for the lower ladder alone.
+# project1 is quota-limited and a quota is hit PARTWAY THROUGH a run, on the
+# first save past the limit, hours in and after the compute is spent.
+# /e/scratch has 9.2 PB free.
+runs_dir: ${oc.env:CKDA_RUNS,/e/scratch/e-sta-openeurollm/poeppel1/complex_kda_runs}

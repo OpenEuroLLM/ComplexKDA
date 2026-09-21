@@ -1,0 +1,13 @@
+{
+  "model": "/e/scratch/e-sta-openeurollm/poeppel1/eval_fwedu/export/ckda-shipped-hybrid-lowrank_step190976",
+  "tokenizer": "/e/scratch/e-sta-openeurollm/poeppel1/datasets/fineweb-edu-100BT-llama2/tokenizer",
+  "tasks": [
+    "squad_completion",
+    "swde",
+    "fda"
+  ],
+  "context_prefix": "none",
+  "context_prefix_ids": [],
+  "max_length": 4096,
+  "limit": null
+}

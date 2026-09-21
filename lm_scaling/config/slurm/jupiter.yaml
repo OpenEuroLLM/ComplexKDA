@@ -1,0 +1,135 @@
+# JUPITER booster: 4x GH200 a node, whole nodes only.
+#
+# Everything JUPITER-specific is here rather than in templates/cluster.sbatch,
+# so it shows up in the config archived beside each run and can be overridden
+# from the command line for one job.
+class_name: Slurm
+template_path: ${oc.env:CKDA_REPO,${oc.env:PWD}}/lm_scaling/templates/cluster.sbatch
+script_dir: ${job.base_output_dir}
+log_dir: ${job.base_output_dir}
+name: ${job.name}
+array: false
+launcher_env_passthrough: true
+
+# The container entry, composed from `container.*` rather than written out --
+# so switching cluster means switching the container group, not editing a
+# launcher string that happens to repeat the image path.
+#
+# `env` below is exported by the BATCH SHELL, not passed with --env, because
+# apptainer passes the host environment into the container by default. That
+# keeps one list instead of two, and it is also how TRITON_CACHE_DIR gets a
+# value computed from $SLURM_JOB_ID. `container.env` is the escape hatch for
+# anything that must differ INSIDE the container, and is forwarded explicitly.
+# LOCAL_ADDR is exported HERE and not in `env`, and that placement is the
+# whole point: `env` becomes `export` lines in the batch script, which runs
+# only on the first node, so every rank would inherit node 0's address.
+# launcher_cmd runs inside the srun'd shell on each node, so each computes its
+# own.
+#
+# No literal single quote may appear in this string: the template renders it
+# inside `bash -c '...'`, and one quote ends the outer one and breaks the
+# parse. That is why the address is cut with sed and double quotes rather than
+# the more obvious awk {print $2}.
+launcher_cmd: "export LOCAL_ADDR=$(nslookup $(hostname) \
+  | grep \"Address: \" | tail -n1 | sed \"s/.*Address: //\") ; \
+  ${oc.select:container.runtime,apptainer} exec \
+  ${oc.join:' ',${container.args}} \
+  ${oc.join:' ',${oc.maptmpl:'--bind %',${container.bind}}} \
+  ${oc.join:' ',${oc.maptmpl:'--overlay %:ro',${container.overlays}}} \
+  --bind ${oc.env:CKDA_REPO,${oc.env:PWD}}:${oc.env:CKDA_REPO,${oc.env:PWD}} \
+  ${oc.join:' ',${oc.mapkeyvaltmpl:'--env %k=%v',${container.env}}} \
+  ${container.image}"
+
+# A MAPPING, not the `srun_opts` string it replaces. Hydra merges a mapping
+# key-by-key across the defaults list, so a cluster group and an experiment can
+# each contribute flags; a string is replaced wholesale and the last one wins.
+# slurm_gen renders `_` as `-`, true as a bare flag, and SKIPS false -- so an
+# experiment can switch off a flag this group set.
+srun_args:
+  mpi: none
+  cpus_per_task: 288
+  threads_per_core: 1
+  gpu_bind: none
+
+env:
+  # nslookup on JUPITER intermittently returns no "Address:" line, which
+  # yields an EMPTY MASTER_ADDR -- torchrun then exits with "--master-addr
+  # expected one argument" (exit 2) and the reservation is spent on nothing.
+  # Retry, then fall back to the bare hostname, so it is never empty.
+  MASTER_ADDR: "$(a=\"\"; for i in $(seq 1 15); do a=$(nslookup $(scontrol show hostnames \"$SLURM_JOB_NODELIST\" | head -n 1) | grep \"Address: \" | sed \"s/Address: //\" | tail -n 1); [ -n \"$a\" ] && break; sleep 2; done; [ -z \"$a\" ] && a=$(scontrol show hostnames \"$SLURM_JOB_NODELIST\" | head -n 1); echo \"$a\")"
+  MASTER_PORT: "29500"
+  NUM_NODES: "$SLURM_JOB_NUM_NODES"
+  GPUS_PER_NODE: "${backend.gpus_per_node}"
+
+  # The repo FIRST. The image ships flash-linear-attention 0.3.2, which has
+  # neither complex_kda nor panini; without this the container's copy wins and
+  # the run silently benchmarks the wrong code.
+  # The repo first, then titan-oellm and its vendored torchtitan (both inside
+  # the image, neither on its default path).
+  PYTHONPATH: "${oc.env:CKDA_REPO,${oc.env:PWD}}:${oc.env:CKDA_REPO,${oc.env:PWD}}/lm_scaling:/opt/titan-oellm:/opt/titan-oellm/torchtitan"
+  # The Megatron .bin/.idx corpus, not synthetic tokens. titan_ext reads this
+  # to choose its dataloader, and the default is "synthetic" -- a ladder run
+  # that silently trains on random tokens still produces a loss curve.
+  TITAN_EXT_DATA: megatron
+  PYTHONUNBUFFERED: "1"
+
+  # Node-local, per job. JUPITER's profile exports TRITON_CACHE_DIR to a
+  # quota-limited project path and --export=ALL carries it in, so a
+  # "${VAR:-default}" never applies -- it has to be set outright. A full quota
+  # surfaces as "OSError: [Errno 122] Disk quota exceeded" raised from inside
+  # kernel compilation, which reads like a code fault rather than a disk one.
+  TRITON_CACHE_DIR: "/tmp/triton-$USER-$SLURM_JOB_ID"
+  TILELANG_CACHE_DIR: "/tmp/tilelang-$USER-$SLURM_JOB_ID"
+  TRITON_LIBCUDA_PATH: /opt/nvidia/lib
+  # ON, and required rather than preferred. The image ships Triton 3.6.0 and
+  # fla refuses the gated chunk backward on Hopper in that band: "Triton >=
+  # 3.4.0 and < 3.7.1 on Hopper GPUs produces incorrect results for gated
+  # chunk_bwd_dqkwg". It is a CORRECTNESS guard, so gdn simply cannot run on
+  # a GH200 without this -- it never fired on JUWELS because A100 is Ampere.
+  # tilelang lives in the overlay, which training jobs already mount; see
+  # lm_scaling/data/make_overlay.sh.
+  FLA_TILELANG: "1"
+  # BK for chunk_kda_bwd_kernel_intra, the hottest kernel in the backward
+  # (20% of the step at 1.7B): 64 makes NK=1 and drops a loop dimension.
+  FLA_KDA_BWD_BK: "32"
+
+  # NOTE on LD_LIBRARY_PATH, absent on purpose: exporting it EMPTY REPLACES
+  # the container's own library path rather than leaving it alone, hiding
+  # libcuda.so and failing every rank with "Found no NVIDIA driver on your
+  # system". It belongs here only when there is something real to add.
+
+  PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+  OMP_NUM_THREADS: "$SLURM_CPUS_PER_TASK"
+  TOKENIZERS_PARALLELISM: "false"
+  HF_DATASETS_OFFLINE: "1"
+  TRANSFORMERS_OFFLINE: "1"
+  WANDB_MODE: offline
+
+  NCCL_SOCKET_IFNAME: ib0
+  NCCL_IB_HCA: mlx5_0,mlx5_1,mlx5_2,mlx5_3
+  NCCL_NET_GDR_LEVEL: "2"
+  NCCL_IB_TIMEOUT: "22"
+  NCCL_IB_RETRY_CNT: "20"
+  TORCH_NCCL_ASYNC_ERROR_HANDLING: "1"
+
+sbatch:
+  account: ${oc.env:SLURM_ACCOUNT}
+  partition: ${oc.env:SLURM_PARTITION,booster}
+  nodes: 1
+  ntasks_per_node: 1
+  gres: "gpu:4"
+  cpus_per_task: 288
+  exclusive: true
+  # --gpu-bind=none is what lets torchrun see the devices in natural order.
+  # SLURM otherwise binds a task to a subset of the node's GPUs and may
+  # reorder CUDA_VISIBLE_DEVICES, so torchrun's local rank i stops meaning
+  # device i. With one task per node it looks harmless -- the task gets all
+  # four either way -- which is why this is invisible until a job spans nodes
+  # or the binding order stops matching.
+  gpu_bind: "none"
+  # Explicit rather than inferred from nodes x ntasks_per_node: srun launches
+  # one task per node here, and the launcher is torchrun, not srun.
+  ntasks: ${slurm.sbatch.nodes}
+  gpus_per_node: 4
+  time: "12:00:00"
+  output: ${job.log_path}

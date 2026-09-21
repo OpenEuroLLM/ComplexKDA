@@ -1,0 +1,245 @@
+{
+  "scope": "algebraic CPU reference; optimized CUDA comparisons are covered by tests/ops/test_complex_kda.py",
+  "environment": {
+    "python": "3.13.14",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "torch": "2.13.0",
+    "dtype": "float64"
+  },
+  "cases": [
+    {
+      "seed": 0,
+      "length": 8,
+      "sign_mode": "alternating",
+      "output": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "final_state": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "backward": {
+        "q": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "k": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "v": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "log_magnitude": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "beta": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "initial_state": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        }
+      }
+    },
+    {
+      "seed": 0,
+      "length": 8,
+      "sign_mode": "random",
+      "output": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "final_state": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "backward": {
+        "q": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "k": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "v": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "log_magnitude": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "beta": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "initial_state": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "length": 17,
+      "sign_mode": "alternating",
+      "output": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "final_state": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "backward": {
+        "q": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "k": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "v": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "log_magnitude": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "beta": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "initial_state": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "length": 17,
+      "sign_mode": "random",
+      "output": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "final_state": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "backward": {
+        "q": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "k": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "v": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "log_magnitude": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "beta": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "initial_state": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "length": 64,
+      "sign_mode": "alternating",
+      "output": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "final_state": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "backward": {
+        "q": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "k": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "v": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "log_magnitude": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "beta": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "initial_state": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "length": 64,
+      "sign_mode": "random",
+      "output": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "final_state": {
+        "max_absolute": 0.0,
+        "max_relative": 0.0
+      },
+      "backward": {
+        "q": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "k": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "v": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "log_magnitude": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "beta": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        },
+        "initial_state": {
+          "max_absolute": 0.0,
+          "max_relative": 0.0
+        }
+      }
+    }
+  ]
+}

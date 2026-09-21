@@ -1,0 +1,64 @@
+# One candidate micro-batch, at the width the campaign runs on: the ceiling
+# probe.
+#
+# NOT `speed`. A ceiling is a property of the whole world, because FSDP shards
+# parameters, gradients and optimizer state over every rank -- the fixed cost
+# per GPU halves when the world doubles, which at 1.7B is the difference
+# between mbs 1 and mbs 2. Measuring it on one node and using it at 32 gives a
+# floor: the honest direction to be wrong in, and still wrong.
+#
+# A CEILING PROBE CANNOT CITE THE CEILING IT IS MEASURING. `aux.peak` is
+# `${peak_mbs:...}`, which RAISES for a cell nobody has measured -- correct
+# everywhere else, and circular here: the cell has no entry precisely because
+# this is the run that makes one. So `peak` is pinned to the candidate, which
+# keeps the citation strict for every other caller.
+#
+# These are `aux` overrides and they hold, unlike `probe`'s: no sweep group
+# sets the micro-batch, because it is derived from the batch and the ceiling
+# rather than swept.
+defaults:
+  - probe
+
+aux:
+  # HOW WIDE TO MEASURE. One node, matching every section in peak_mbs.yaml,
+  # which are all `_g4`.
+  #
+  # It has to be pinned here rather than inherited. On the upper ladders the
+  # campaign's width FOLLOWS the micro-batch -- `nodes = gbs / (gpus * peak)`,
+  # so accumulation is 1 -- and `peak` is pinned to the candidate below. The
+  # two together made the probe reserve 64 nodes to ask whether mbs 1 fits and
+  # 4 nodes to ask about mbs 16, so every candidate was measured at a
+  # different world and the answers were not comparable to each other, let
+  # alone to the table.
+  #
+  # A one-node ceiling is a FLOOR at any larger world: FSDP shards parameters,
+  # gradients and optimizer state over every rank, so the fixed cost per GPU
+  # only falls as the world grows. It is not free -- 1.7B measured at 8 GPUs
+  # holds mbs 2 for kda and ckda-hybrid where the 4-GPU table says 1, worth
+  # 19% on those arms -- so `-o ++aux.probe_nodes=32` before committing a
+  # queue that size.
+  probe_nodes: 1
+  nodes: ${aux.probe_nodes}
+
+  probe_mbs: 1
+  peak: ${aux.probe_mbs}
+  mbs: ${aux.probe_mbs}
+  # The candidate is deliberately not a divisor of the campaign's per-GPU
+  # share -- whether it fits at all is the question. `global_batch_size` below
+  # makes the step arithmetic consistent anyway, so accumulation is 1 by
+  # construction and torchtitan accepts the config.
+  grad_accum: 1
+  campaign: mbs
+
+backend:
+  titan:
+    training:
+      local_batch_size: ${aux.mbs}
+      global_batch_size: ${oc.muli:${aux.mbs},${aux.world_gpus}}
+    validation:
+      # A probe whose two batch sizes disagree stops measuring what it says the
+      # moment anyone turns validation back on.
+      local_batch_size: ${aux.mbs}
+
+job:
+  name: ${aux.model}_${aux.size}_m${aux.probe_mbs}

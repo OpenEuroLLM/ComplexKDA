@@ -1,0 +1,30 @@
+{
+  "description": "Seed-0 reference metrics for the paper configuration. SNR is measured over every post-cue waveform sample.",
+  "training": {
+    "steps": 2500,
+    "batch_size": 64,
+    "hidden_size": 128,
+    "heads": 8,
+    "head_dimension": 16,
+    "prefix_steps": 8,
+    "maximum_training_length": 136,
+    "optimizer": "Muon for sequence-layer matrices and AdamW for adapters and other parameters",
+    "curriculum_lengths": [12, 16, 24, 40, 72, 136]
+  },
+  "waveform_snr_db": {
+    "KDA_alpha_0_1_beta_0_1": {"40": 5.1777, "136": 1.7509, "264": -2.7068},
+    "KDA_alpha_0_1_beta_0_2": {"40": 5.7576, "136": 2.8667, "264": 2.1077},
+    "KDA_alpha_neg1_1_beta_0_1": {"40": 8.0570, "136": 3.1894, "264": -0.6610},
+    "KDA_alpha_neg1_1_beta_0_2": {"40": 45.6221, "136": 42.2288, "264": 38.0646},
+    "GRU": {"40": 72.8234, "136": 73.0230, "264": 73.0572},
+    "causal_Transformer": {"40": 39.7970, "136": 39.7644, "264": 2.8230}
+  },
+  "additional_controls": {
+    "gated_DeltaProduct2_reflection_init": {"40": 40.8419, "136": 32.6399, "264": 19.3422},
+    "gated_DeltaProduct2_default_init": {"40": 3.6911, "136": 1.7148, "264": -15.8011},
+    "ungated_DeltaProduct2_default_init": {"40": 5.0159, "136": 1.7176, "264": 1.3486},
+    "Transformer_RoPE_base_10000": {"40": 43.4087, "136": 42.2701, "264": 2.0082},
+    "Transformer_RoPE_base_500000": {"40": 47.8234, "136": 47.5083, "264": 2.6131},
+    "Transformer_no_position_encoding": {"40": 4.8553, "136": 1.7254, "264": -6.6311}
+  }
+}

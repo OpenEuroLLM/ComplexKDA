@@ -1,0 +1,229 @@
+# torchtitan, through `lm_scaling/titan_ext`.
+#
+# `titan` below IS the TOML: its sections are torchtitan's sections, so the
+# emitter is a dump rather than a translation. That matters because a field
+# torchtitan does not know is a field torchtitan IGNORES -- silently. Four
+# defects have already been found on this path and not one of them errored or
+# looked wrong in a log.
+class_name: Backend
+name: titan
+gpus_per_node: 4
+launcher: torchrun
+
+# What torchrun needs to place ranks correctly. A MAPPING, so a cluster group
+# can add or override one flag without restating the list.
+#
+# `node_rank` is the one that matters and the one that was missing: with a
+# static rendezvous every node defaults to rank 0, so a multi-node job either
+# hangs at the barrier or -- worse -- runs with several nodes believing they
+# own rank 0. It costs nothing on one node, which is exactly why it survives
+# testing until the first multi-node run.
+#
+# `local_addr` is JUWELS's second requirement: a node's Ethernet name and its
+# InfiniBand name differ (jwb0170 against jwb0170i), and without it a rank
+# advertises an address its peers cannot reach over the fabric.
+torchrun_args:
+  nnodes: "$SLURM_NNODES"
+  nproc_per_node: "${backend.gpus_per_node}"
+  node_rank: "$SLURM_NODEID"
+  master_addr: "$MASTER_ADDR"
+  master_port: "$MASTER_PORT"
+  rdzv_backend: static
+  rdzv_endpoint: "$MASTER_ADDR:$MASTER_PORT"
+  local_addr: "$LOCAL_ADDR"
+
+entrypoint: "-m torchtitan.train"
+config_flag: "--job.config_file"
+# The TOML this backend reads, written beside the run it configures. `titan`
+# below is dumped to it verbatim.
+config_file: ${job.base_output_dir}/titan.toml
+
+titan:
+  job:
+    dump_folder: ${job.base_output_dir}
+    description: "${aux.model} ${aux.size}"
+    custom_config_module: titan_oellm.configs.sci_job_config
+
+  experimental:
+    # How `fla_custom` and the ladder flavors get registered. Without it
+    # torchtitan resolves `flavor` against qwen3_custom's own list, and eleven
+    # jobs died on a KeyError naming a flavor that was never registered.
+    custom_import: lm_scaling.titan_ext
+
+  model:
+    # `attn` runs on titan-oellm's own spec (no mixer swap); everything else
+    # on ours.
+    name: ${oc.if:${oc.eq:${aux.model},attn},qwen3_custom,fla_custom}
+    # `<arch>-<rung>`, or its `-nosilu` variant when the campaign drops SiLU
+    # from q/k/v (aux.drop_silu) and the arm's layer can -- a separate flavor,
+    # so a running job's restart never picks up a changed definition.
+    flavor: ${flavor:${aux.size},${aux.model},${aux.drop_silu}}
+
+    # These are NOT decoration. Qwen3CustomModelArgs.update_from_config copies
+    # vocab_size, head_dim, hidden_dim, enable_weight_tying, rope_theta,
+    # norm_eps, qk_norm and depth_init out of job_config.model
+    # UNCONDITIONALLY -- its `hasattr` guards are always true, because those
+    # are dataclass fields with defaults. Omitting any of them silently
+    # reinstates Qwen's own value (head_dim 128, hidden_dim 3072, untied).
+    # That once built a 1.09B model under the flavor name "complex-kda-1.7B",
+    # and the throughput was divided by the 1.71B count.
+    #
+    # dim / n_layers / n_heads / n_kv_heads are NOT copied, so they come from
+    # the flavor. Both halves are generated from ladder_matched.json, which is
+    # why they cannot disagree.
+    vocab_size: ${data.vocab_size}
+    head_dim: ${rung:${aux.size},head_dim}
+    hidden_dim: ${matched:${aux.size},${aux.model},d_ffn}
+    enable_weight_tying: ${data.tie_embeddings}
+    rope_theta: 10000
+    norm_eps: 1.0e-6
+    # OFF, matching fla's TransformerConfig (qk_norm defaults False) and so
+    # the `lm/` baseline. Qwen3 defaults it ON, which would give the dense arm
+    # a q_norm/k_norm the other backends do not have -- 128 parameters a
+    # layer, far under the parameter-count guard's tolerance, but a real
+    # change to the dynamics that would surface as a loss mismatch with no
+    # traceable source.
+    qk_norm: false
+    # OFF, matching fla. torchtitan defaults depth_init=True, scaling every
+    # block's output-projection init by 1/sqrt(2*(layer_id+1)); fla's
+    # equivalent divides uniformly by sqrt(2*n_layers) and defaults False.
+    # Left on, the two backends start from different distributions and stay
+    # apart: the first loss-matching run had torchtitan 4.3% worse at 0.2BT on
+    # attn, with identical parameter counts, data and schedule.
+    depth_init: false
+
+  training:
+    dataset: megatron
+    dataset_path: ${data.prefix}
+    seq_len: ${data.seq_len}
+    local_batch_size: ${aux.mbs}
+    # Without this torchtitan defaults global_batch_size to local x dp, i.e.
+    # gradient accumulation of 1 -- and silently trains a batch as many times
+    # smaller as the config's accumulation factor.
+    global_batch_size: ${aux.gbs}
+    steps: ${aux.steps}
+    mixed_precision_param: bfloat16
+
+  optimizer:
+    name: AdamW
+    lr: ${aux.lr}
+    weight_decay: 0.1
+    beta1: 0.9
+    beta2: 0.95
+
+  lr_scheduler:
+    # titan-oellm ALWAYS builds its "universal" three-phase scheduler,
+    # whatever `scheduler_type` says, and that scheduler reads only these
+    # names. `warmup_steps`, `decay_ratio`, `decay_type` and `scheduler_type`
+    # are all declared fields, so setting them raises nothing and changes
+    # nothing: they are never read.
+    #
+    # Every torchtitan run before this was found therefore trained at a
+    # CONSTANT learning rate with no warmup and no decay, while its TOML said
+    # WSD with 500 warmup steps. It is why loss matching against `lm/` sat 4%
+    # apart through three unrelated "fixes".
+    #
+    # WSD maps on as: linear warm up -> constant main -> linear cooldown.
+    warm_steps: ${aux.warmup_steps}
+    warm_direction: up
+    warm_type: linear
+    main_decay_type: const
+    main_decay_ratio: 1.0
+    cooldown_steps: ${aux.cooldown_steps}
+    cooldown_type: linear
+    lr_min_absolute: 1.0e-5
+
+  parallelism:
+    data_parallel_replicate_degree: 1
+    data_parallel_shard_degree: -1
+    tensor_parallel_degree: 1
+    pipeline_parallel_degree: 1
+    context_parallel_degree: 1
+
+  compile:
+    enable: true
+    backend: inductor
+    # "model" compiles each TransformerBlock; torchtitan asks for
+    # fullgraph=True, which an fla block cannot satisfy, so titan_ext relaxes
+    # that for the fla spec only. Worth +7-9% at 983M and above and NEGATIVE
+    # below, so it is a per-(arch, rung) choice the experiment makes.
+    # A LIST, not a string: torchtitan reads `components` as a list of
+    # scopes, and a bare "model+loss" is silently no scope at all.
+    components: ${oc.split:${aux.compile_components},+}
+
+  activation_checkpoint:
+    mode: none
+
+  checkpoint:
+    enable: true
+    folder: checkpoint
+    interval: ${aux.ckpt_interval}
+    last_save_model_only: false
+    # 0 = keep everything. The default 10 purges the early branch checkpoints
+    # before their annealings run, and the branches span the whole stable
+    # phase.
+    keep_latest_k: 0
+    async_mode: disabled
+
+  validation:
+    enable: true
+    # torchtitan's Validator builds its own dataloader rather than going
+    # through the train spec, so `megatron` here is read by titan_ext's
+    # replacement. Without that swap it evaluates on c4 and the number is
+    # incomparable in a way nothing in the log shows.
+    dataset: megatron
+    dataset_path: ${data.valid_prefix}
+    seq_len: ${data.seq_len}
+    local_batch_size: ${aux.mbs}
+    # A DIVISOR of training.steps, so the final step is validated -- see
+    # aux.eval_freq. `ceil(steps / n)` is not, and misses the endpoint.
+    freq: ${aux.eval_freq}
+    # Exactly the sequences data.eval_sequences names, split equally across
+    # EVERY rank -- torchtitan divides the summed loss by this count, so it
+    # has to be exact and the same for every arm.
+    #
+    # Across the world, not one node's GPUs. Every rank runs `steps` batches,
+    # so dividing by `gpus_per_node` scores `eval_sequences x nodes`: exact on
+    # one node, which is the whole lower ladder, and 2x to 32x too many on the
+    # upper ladders, where the width follows each arm's micro-batch. Which
+    # windows get scored is fixed separately, in titan_ext/megatron_validate.py.
+    steps: ${oc.divi:${data.eval_sequences},${oc.muli:${aux.mbs},${aux.world_gpus}}}
+
+  metrics:
+    # 1, matching the runs that produced the campaign's numbers. A coarser
+    # log_freq is where validation losses go to die: `lm/` evaluated on
+    # step % 763 and logged on step % 25, the two never coincided, and every
+    # validation loss of the first wave was computed and discarded.
+    log_freq: 1
+    disable_color_printing: true
+
+    # ON. Every campaign run is hours long and restarts at the 6-hour wall
+    # limit, and the slurm log is the only other record -- a text file that
+    # has to be grepped to answer "is the loss still going down".
+    #
+    # torchtitan writes to `<job.dump_folder>/<save_tb_folder>/<timestamp>/`,
+    # rank 0 only (`save_for_all_ranks` stays false: eight copies of one
+    # scalar is not eight times the information). The timestamp means each
+    # restart appears as its OWN tensorboard run rather than overwriting the
+    # last -- which is what keeps the history of a job that was requeued four
+    # times, at the cost of having to select several runs to see one curve.
+    #
+    # `validation_metrics/loss` is the series this campaign exists to produce.
+    # It is logged from the same call that prints the `validate step:` line,
+    # so the two cannot disagree.
+    enable_tensorboard: true
+    save_tb_folder: tb
+    # wandb is installed in the container but stays off: JUWELS compute nodes
+    # have no route to the internet, so it would need offline mode plus a sync
+    # step, and tensorboard already writes the same scalars to a path that is
+    # readable from the login node while the job runs.
+    enable_wandb: false
+
+  parameter_logging:
+    enabled: false
+
+  benchmarks:
+    enable: false
+
+  debug:
+    seed: ${aux.seed}

@@ -1,0 +1,417 @@
+#!/usr/bin/env bash
+
+set -u
+
+HOST="${MN5_HOST:-mn5-acc}"
+ACCOUNT="${MN5_ACCOUNT:-ehpc390}"
+WATCH_SECONDS=0
+USE_COLOR=1
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/mn5_dashboard [options]
+
+Show allocation, storage, fair-share, and live Slurm usage for MareNostrum 5.
+
+Options:
+  --host HOST       Local SSH alias to query (default: mn5-acc)
+  --account NAME    Slurm account (default: ehpc390)
+  --watch SECONDS   Refresh continuously
+  --no-color        Disable ANSI colors
+  -h, --help        Show this help
+
+Environment overrides: MN5_HOST, MN5_ACCOUNT, NO_COLOR
+EOF
+}
+
+while (($#)); do
+  case "$1" in
+    --host)
+      [[ $# -ge 2 ]] || { echo "--host needs a value" >&2; exit 2; }
+      HOST=$2
+      shift 2
+      ;;
+    --account)
+      [[ $# -ge 2 ]] || { echo "--account needs a value" >&2; exit 2; }
+      ACCOUNT=$2
+      shift 2
+      ;;
+    --watch)
+      [[ $# -ge 2 ]] || { echo "--watch needs a value" >&2; exit 2; }
+      WATCH_SECONDS=$2
+      shift 2
+      ;;
+    --no-color)
+      USE_COLOR=0
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+[[ "$HOST" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid SSH host: $HOST" >&2; exit 2; }
+[[ "$ACCOUNT" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid account: $ACCOUNT" >&2; exit 2; }
+[[ "$WATCH_SECONDS" =~ ^[0-9]+$ ]] || { echo "--watch must be a whole number of seconds" >&2; exit 2; }
+
+if [[ ! -t 1 || -n "${NO_COLOR:-}" ]]; then
+  USE_COLOR=0
+fi
+
+if ((USE_COLOR)); then
+  RESET=$'\033[0m'
+  BOLD=$'\033[1m'
+  DIM=$'\033[2m'
+  GOLD=$'\033[38;5;220m'
+  AMBER=$'\033[38;5;208m'
+  TEAL=$'\033[38;5;44m'
+  BLUE=$'\033[38;5;75m'
+  GREEN=$'\033[38;5;82m'
+  RED=$'\033[38;5;203m'
+  CREAM=$'\033[38;5;230m'
+else
+  RESET= BOLD= DIM= GOLD= AMBER= TEAL= BLUE= GREEN= RED= CREAM=
+fi
+
+TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/mn5-dashboard.XXXXXX") || exit 1
+trap 'rm -rf "$TMP_ROOT"' EXIT INT TERM
+
+repeat_char() {
+  local character=$1
+  local count=$2
+  printf '%*s' "$count" '' | tr ' ' "$character"
+}
+
+rule() {
+  printf '%s' "$GOLD"
+  repeat_char '═' 76
+  printf '%s\n' "$RESET"
+}
+
+heading() {
+  printf '\n%s◆ %s%s%s\n' "$GOLD" "$BOLD" "$1" "$RESET"
+}
+
+metric() {
+  printf '  %s%-18s%s %s\n' "$DIM" "$1" "$RESET" "$2"
+}
+
+bar() {
+  local label=$1
+  local used=$2
+  local total=$3
+  local unit=$4
+  local width=30
+  local percent filled empty color
+
+  percent=$(awk -v used="$used" -v total="$total" 'BEGIN { if (total > 0) printf "%.0f", 100 * used / total; else print 0 }')
+  ((percent < 0)) && percent=0
+  ((percent > 100)) && percent=100
+  filled=$((percent * width / 100))
+  empty=$((width - filled))
+  color=$GREEN
+  ((percent >= 70)) && color=$AMBER
+  ((percent >= 90)) && color=$RED
+
+  printf '  %-18s %s' "$label" "$color"
+  repeat_char '▓' "$filled"
+  printf '%s%s' "$DIM" "$color"
+  repeat_char '░' "$empty"
+  printf '%s %3d%%  %s / %s %s\n' "$RESET" "$percent" "$used" "$total" "$unit"
+}
+
+field_rows() {
+  local prefix=$1
+  awk -F '|' -v prefix="$prefix" '$1 == prefix'
+}
+
+fetch() {
+  local output_file=$1
+  local error_file=$2
+
+  ssh -o BatchMode=yes -o ConnectTimeout=12 -o LogLevel=ERROR "$HOST" "bash -s -- '$ACCOUNT'" >"$output_file" 2>"$error_file" <<'REMOTE'
+ACCOUNT=$1
+export LC_ALL=C
+
+strip_ansi() {
+  sed $'s/\033\[[0-9;]*m//g'
+}
+
+printf 'META|%s|%s|%s\n' "$(hostname)" "$(date '+%Y-%m-%d %H:%M:%S %Z')" "$USER"
+
+acct_output=$(bsc_acct 2>&1 | strip_ansi)
+project=$(printf '%s\n' "$acct_output" | sed -n 's/^Project: *//p' | head -1)
+expiry=$(printf '%s\n' "$acct_output" | sed -n "s/^Project's Expiration Date: *//p" | head -1)
+printf 'PROJECT|%s|%s\n' "$project" "$expiry"
+printf '%s\n' "$acct_output" | awk '
+  /^Marenostrum5 (GPP|ACC)/ {
+    total=$3;
+    if (total == "undefined") {
+      used=$4; pct=""
+    } else {
+      used=$5; pct=$6
+    }
+    gsub(/[()%]/, "", pct);
+    printf "ALLOC|%s|%s|%s|%s\n", $2, total, used, pct
+  }
+'
+
+scontrol show partition --oneliner 2>/dev/null | awk '
+  {
+    partition=state=nodes=cpus=gpus=""
+    for (i=1; i<=NF; i++) {
+      split($i, value, "=")
+      if (value[1] == "PartitionName") partition=value[2]
+      if (value[1] == "State") state=value[2]
+      if (value[1] == "TotalNodes") nodes=value[2]
+      if (value[1] == "TotalCPUs") cpus=value[2]
+      if (value[1] == "TRES" && index($i, "gres/gpu=") > 0) {
+        split($i, tres, "gres/gpu=")
+        split(tres[2], gpu_value, ",")
+        gpus=gpu_value[1]
+      }
+    }
+    if (partition ~ /^(gpp|hbm|acc)$/)
+      printf "CAPACITY|%s|%s|%s|%s|%s\n", partition, state, nodes, cpus, gpus
+  }
+'
+
+if command -v python3 >/dev/null 2>&1 && [[ -r /apps/modules/bsc/.data/.nodes ]]; then
+  python3 - <<'PYTHON'
+import base64
+import datetime
+import math
+import pickle
+import statistics
+import zlib
+
+try:
+    with open("/apps/modules/bsc/.data/.nodes", "rb") as handle:
+        payload = zlib.decompress(handle.read()).decode("utf-8")
+    timestamp_length, payload = payload.split("A", 1)
+    timestamp = payload[:int(timestamp_length)]
+    payload = payload[int(timestamp_length):]
+    parts = payload.split("b'")
+    encoded = (parts[3] if len(parts) > 3 and parts[2] == "" else parts[2]).encode()
+    nodes = pickle.loads(base64.b64decode(encoded))
+
+    utilization = []
+    memory = []
+    for name, data in nodes.items():
+        if name == "aggs" or not name.startswith("as"):
+            continue
+        for index in range(4):
+            gpu_util = data.get(f"utilization_gpu_{index}")
+            gpu_memory = data.get(f"memory_used_{index}")
+            if isinstance(gpu_util, (int, float)) and math.isfinite(gpu_util):
+                utilization.append(float(gpu_util))
+            if isinstance(gpu_memory, (int, float)) and math.isfinite(gpu_memory):
+                memory.append(float(gpu_memory))
+
+    snapshot = datetime.datetime.fromtimestamp(int(timestamp) / 1000).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    active = sum(value > 1 for value in utilization)
+    memory_active = sum(value > 1 for value in memory)
+    mean_utilization = statistics.fmean(utilization) if utilization else 0
+    print(
+        f"GPU|{snapshot}|{len(utilization)}|{active}|{memory_active}|{mean_utilization:.2f}"
+    )
+except Exception as error:
+    print(f"GPU_ERROR|{str(error).replace('|', '/')}" )
+PYTHON
+fi
+
+if command -v bsc_quota >/dev/null 2>&1; then
+  bsc_quota --no-color -u GB 2>&1 | strip_ansi | awk '
+    $1 ~ /^gpfs_(home|projects|scratch)$/ {
+      printf "QUOTA|%s|%s|%s|%s\n", $1, $3, $5, $7
+    }
+  '
+fi
+
+sshare -n -P -A "$ACCOUNT" -u "$USER" \
+  -o Account,User,RawShares,NormShares,RawUsage,EffectvUsage,FairShare 2>/dev/null | \
+  awk -F '|' 'NF >= 7 && $2 != "" { printf "FAIR|%s|%s|%s|%s|%s|%s|%s\n", $1, $2, $3, $4, $5, $6, $7 }'
+
+squeue -h -A "$ACCOUNT" -o '%T|%C|%D|%b' 2>/dev/null | awk -F '|' '
+  function gpu_count(gres, fields, n, value) {
+    if (gres == "N/A" || gres == "") return 0
+    n=split(gres, fields, /[:,=]/)
+    value=fields[n]
+    return value ~ /^[0-9]+$/ ? value + 0 : 0
+  }
+  {
+    state=$1; jobs[state]++; cpus[state]+=$2; nodes[state]+=$3; gpus[state]+=gpu_count($4)
+  }
+  END {
+    for (state in jobs)
+      printf "QUEUE|%s|%d|%d|%d|%d\n", state, jobs[state], cpus[state], nodes[state], gpus[state]
+  }
+'
+
+squeue -h -u "$USER" -o '%i|%P|%j|%T|%M|%l|%D|%C|%R' 2>/dev/null | \
+  awk -F '|' 'NR <= 10 { printf "JOB|%s|%s|%s|%s|%s|%s|%s|%s|%s\n", $1,$2,$3,$4,$5,$6,$7,$8,$9 }'
+
+if command -v bsc_load >/dev/null 2>&1; then
+  load_output=$(bsc_load 2>&1)
+  load_status=$?
+  if ((load_status == 0)); then
+    printf 'LOAD|available\n'
+    printf '%s\n' "$load_output" | strip_ansi | sed 's/^/LOADLINE|/'
+  else
+    load_error=$(printf '%s\n' "$load_output" | tail -1 | tr '|' '/')
+    printf 'LOAD|unavailable|%s\n' "$load_error"
+  fi
+else
+  printf 'LOAD|missing|bsc_load is not installed\n'
+fi
+REMOTE
+}
+
+render() {
+  local data_file=$1
+  local meta host_name remote_time remote_user project expiry
+  local row partition total used percent fs_name quota limit capacity_state capacity_nodes capacity_cpus capacity_gpus
+  local fairshare effective_usage raw_usage state jobs cpus nodes gpus snapshot active memory_active mean_utilization
+
+  meta=$(field_rows META <"$data_file" | head -1)
+  IFS='|' read -r _ host_name remote_time remote_user <<<"$meta"
+  IFS='|' read -r _ project expiry <<<"$(field_rows PROJECT <"$data_file" | head -1)"
+
+  printf '%s%s' "$GOLD" "$BOLD"
+  printf '╔══════════════════════════════════════════════════════════════════════════╗\n'
+  printf '║              ◇  M A R E N O S T R U M   5  ◇                          ║\n'
+  printf '╚═══════════════◆══════════════════════════════════════◆═══════════════════╝\n'
+  printf '%s' "$RESET"
+  printf '  %s%s%s  ·  %s  ·  %s\n' "$TEAL" "$host_name" "$RESET" "$remote_user" "$remote_time"
+
+  heading "ALLOCATION · $ACCOUNT"
+  [[ -n "$project" ]] && metric "Project" "$project"
+  [[ -n "$expiry" ]] && metric "Expires" "$expiry"
+  while IFS='|' read -r _ partition total used percent; do
+    if [[ "$total" =~ ^[0-9]+([.][0-9]+)?$ && "$used" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+      bar "$partition compute" "$used" "$total" "khours"
+    elif [[ "$total" == "undefined" ]]; then
+      metric "$partition compute" "not allocated"
+    else
+      metric "$partition compute" "$used / $total khours"
+    fi
+  done < <(field_rows ALLOC <"$data_file")
+
+  heading "PARTITION CAPACITY"
+  if field_rows CAPACITY <"$data_file" | grep -q .; then
+    printf '  %s%-10s %-8s %12s %14s %10s%s\n' "$DIM" "PARTITION" "STATE" "NODES" "CPUS" "GPUS" "$RESET"
+    while IFS='|' read -r _ partition capacity_state capacity_nodes capacity_cpus capacity_gpus; do
+      [[ -z "$capacity_gpus" ]] && capacity_gpus='—'
+      if [[ "$capacity_state" == "UP" ]]; then
+        capacity_color=$GREEN
+      else
+        capacity_color=$AMBER
+      fi
+      printf '  %-10s %s%-8s%s %12s %14s %10s\n' \
+        "$partition" "$capacity_color" "$capacity_state" "$RESET" "$capacity_nodes" "$capacity_cpus" "$capacity_gpus"
+    done < <(field_rows CAPACITY <"$data_file")
+    printf '  %sConfigured totals; Slurm hides direct per-node scheduler state.%s\n' "$DIM" "$RESET"
+  else
+    metric "Partitions" "unavailable"
+  fi
+
+  heading "GPU PULSE · ACC"
+  if field_rows GPU <"$data_file" | grep -q .; then
+    IFS='|' read -r _ snapshot total active memory_active mean_utilization <<<"$(field_rows GPU <"$data_file" | head -1)"
+    bar "actively computing" "$active" "$total" "GPUs"
+    bar "memory resident" "$memory_active" "$total" "GPUs"
+    bar "mean utilization" "$mean_utilization" "100" "%"
+    metric "Definition" "active = GPU utilization > 1%"
+    metric "Snapshot" "$snapshot"
+  else
+    metric "Telemetry" "unavailable"
+    field_rows GPU_ERROR <"$data_file" | cut -d '|' -f 2- | sed 's/^/  /'
+  fi
+
+  heading "STORAGE · $ACCOUNT"
+  if field_rows QUOTA <"$data_file" | grep -q .; then
+    while IFS='|' read -r _ fs_name used quota limit; do
+      fs_name=${fs_name#gpfs_}
+      bar "$fs_name" "$used" "$quota" "GB"
+      if awk -v quota="$quota" -v limit="$limit" 'BEGIN { exit !(limit > quota) }'; then
+        printf '  %s%-18s hard limit %s GB%s\n' "$DIM" "" "$limit" "$RESET"
+      fi
+    done < <(field_rows QUOTA <"$data_file")
+  else
+    metric "Quota" "unavailable"
+  fi
+
+  heading "LIVE SLURM · VISIBLE TO $ACCOUNT"
+  if field_rows QUEUE <"$data_file" | grep -q .; then
+    printf '  %s%-12s %7s %9s %8s %8s%s\n' "$DIM" "STATE" "JOBS" "CPUS" "NODES" "GPUS" "$RESET"
+    while IFS='|' read -r _ state jobs cpus nodes gpus; do
+      case "$state" in
+        RUNNING|COMPLETING) state_color=$GREEN ;;
+        PENDING|CONFIGURING) state_color=$AMBER ;;
+        *) state_color=$BLUE ;;
+      esac
+      printf '  %s%-12s%s %7s %9s %8s %8s\n' "$state_color" "$state" "$RESET" "$jobs" "$cpus" "$nodes" "$gpus"
+    done < <(field_rows QUEUE <"$data_file" | sort)
+  else
+    metric "Account jobs" "none visible"
+  fi
+
+  IFS='|' read -r _ _ _ _ _ raw_usage effective_usage fairshare <<<"$(field_rows FAIR <"$data_file" | head -1)"
+  [[ -n "${fairshare:-}" ]] && metric "Fair-share factor" "$fairshare  ${DIM}(higher is better)${RESET}"
+  [[ -n "${effective_usage:-}" ]] && metric "Effective usage" "$effective_usage"
+
+  heading "YOUR JOBS · $remote_user"
+  if field_rows JOB <"$data_file" | grep -q .; then
+    printf '  %s%-10s %-13s %-20s %-11s %-9s %-5s%s\n' "$DIM" "JOB ID" "PARTITION" "NAME" "STATE" "ELAPSED" "CPUS" "$RESET"
+    while IFS='|' read -r _ job_id job_partition job_name job_state elapsed job_limit job_nodes job_cpus reason; do
+      printf '  %-10s %-13.13s %-20.20s %-11s %-9s %-5s\n' \
+        "$job_id" "$job_partition" "$job_name" "$job_state" "$elapsed" "$job_cpus"
+      [[ "$job_state" == "PENDING" ]] && printf '  %s↳ %s%s\n' "$DIM" "$reason" "$RESET"
+    done < <(field_rows JOB <"$data_file")
+  else
+    metric "Jobs" "none"
+  fi
+
+  heading "SYSTEM CAPACITY FEED"
+  IFS='|' read -r _ load_status load_message <<<"$(field_rows LOAD <"$data_file" | head -1)"
+  if [[ "$load_status" == "available" ]]; then
+    field_rows LOADLINE <"$data_file" | cut -d '|' -f 2- | sed 's/^/  /'
+  else
+    metric "bsc_load" "${load_status:-unavailable} (BSC-side tool error)"
+    metric "Fallback" "GPU Pulse uses BSC's telemetry snapshot"
+    printf '  %sExact scheduler allocation is private; activity is measured from GPU telemetry.%s\n' "$DIM" "$RESET"
+  fi
+
+  printf '\n'
+  rule
+  printf '  %s◆ refreshed locally at %s · source: %s ◆%s\n' "$CREAM" "$(date '+%H:%M:%S')" "$HOST" "$RESET"
+}
+
+run_once() {
+  local data_file="$TMP_ROOT/data"
+  local error_file="$TMP_ROOT/error"
+
+  if ! fetch "$data_file" "$error_file"; then
+    printf '%s%sUnable to query %s.%s\n' "$RED" "$BOLD" "$HOST" "$RESET" >&2
+    [[ -s "$error_file" ]] && sed 's/^/  /' "$error_file" >&2
+    return 1
+  fi
+  render "$data_file"
+}
+
+if ((WATCH_SECONDS > 0)); then
+  while true; do
+    printf '\033[2J\033[H'
+    run_once || true
+    sleep "$WATCH_SECONDS"
+  done
+else
+  run_once
+fi
