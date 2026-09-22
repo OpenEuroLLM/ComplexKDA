@@ -1,5 +1,7 @@
 # ComplexKDA
 [![Paper](https://img.shields.io/static/v1?label=Paper&message=2609.24797&color=B31B1B&logo=arXiv)](https://arxiv.org/abs/2609.24797)
+![GitHub Repo stars](https://img.shields.io/github/stars/OpenEuroLLM/ComplexKDA)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 
 > **Paper:** https://arxiv.org/abs/2609.24797
@@ -20,7 +22,7 @@ CKDA extends the ranges of the KDA recurrence parameters to permit signed state 
 | [`fla/`](fla/) | FLA kernels, layers, and model implementations, including CKDA. |
 | [`group_word_problems/`](group_word_problems/) | Single-layer finite-group state tracking on S₃, S₄, and A₅. |
 | [`audio_toys/`](audio_toys/) | Single-layer periodic waveform continuation, baselines, spectral analysis, plots, and WAV export. |
-| [`lm_scaling/`](lm_scaling/) | The language-modelling experiments: the 1.3B / 100BT FineWeb-Edu runs (torchtitan) and the six-rung scaling ladder (Megatron-LM), with corpus staging, both backends' integrations, the campaign configs, the downstream and RULER evaluations, the scaling-law fits, and the measured results those tables are made from. |
+| [`lm_scaling/`](lm_scaling/) | The language-modelling experiments: the 1.3B / 100BT FineWeb-Edu runs (torchtitan) and the six-rung scaling ladder (Megatron-LM), with corpus staging, both backends' integrations, the configs, the downstream and RULER evaluations, the scaling-law fits, and the measured results those tables are made from. |
 | [`evidence/`](evidence/) | Claim-to-artifact index, archived audio measurements and arrays, provenance manifests, and unrounded aggregation tools. |
 | [`tests/group_word_problems/`](tests/group_word_problems/) | Focused tests for the state-tracking task and exact A₅ construction. |
 | [`tests/audio_toys/`](tests/audio_toys/) | Focused tests for waveform generation, causality, and transition initialization. |
