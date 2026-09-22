@@ -1,5 +1,13 @@
 # ComplexKDA
+[![Paper](https://img.shields.io/static/v1?label=Paper&message=2609.24797&color=B31B1B&logo=arXiv)](https://arxiv.org/abs/2609.24797)
+
+
+> **Paper:** https://arxiv.org/abs/2609.24797
+>
+> **Authors:** Julien Siems, Riccardo Grazzi, Korbinian Pöppel, Jaisidh Singh, Arber Zela, Timur Carstensen, Jenia Jitsev, Frank Hutter, Volkan Cevher, Antonio Orvieto, Aaron Klein
+
 <img width="997" height="697" alt="image" src="https://github.com/user-attachments/assets/d243e734-3176-43f6-beb4-e98cb113a2c0" />
+
 This repository is the reproducibility artifact for **Complex Kimi Delta Attention (CKDA)**. It contains the CKDA implementation built on [Flash Linear Attention (FLA)](https://github.com/fla-org/flash-linear-attention), together with the finite-group state-tracking and periodic-waveform experiments used in the paper.
 
 CKDA extends the ranges of the KDA recurrence parameters to permit signed state transitions: the channel-wise gate satisfies **α ∈ [−1, 1]**, and the Householder rate satisfies **β ∈ [0, 2]**. The experiments isolate when these extended ranges enable persistent reflections and rotations that ordinary nonnegative transitions cannot represent directly.
@@ -12,7 +20,7 @@ CKDA extends the ranges of the KDA recurrence parameters to permit signed state 
 | [`fla/`](fla/) | FLA kernels, layers, and model implementations, including CKDA. |
 | [`group_word_problems/`](group_word_problems/) | Single-layer finite-group state tracking on S₃, S₄, and A₅. |
 | [`audio_toys/`](audio_toys/) | Single-layer periodic waveform continuation, baselines, spectral analysis, plots, and WAV export. |
-| [`lm_scaling/`](lm_scaling/) | The language-modelling experiments: the 1.3B / 100BT FineWeb-Edu runs (torchtitan) and the six-rung scaling ladder (Megatron-LM), with corpus staging, both backends' integrations, the campaign configs, the downstream and RULER evaluations, the scaling-law fits, and **the measured results those tables are made from**. |
+| [`lm_scaling/`](lm_scaling/) | The language-modelling experiments: the 1.3B / 100BT FineWeb-Edu runs (torchtitan) and the six-rung scaling ladder (Megatron-LM), with corpus staging, both backends' integrations, the campaign configs, the downstream and RULER evaluations, the scaling-law fits, and the measured results those tables are made from. |
 | [`evidence/`](evidence/) | Claim-to-artifact index, archived audio measurements and arrays, provenance manifests, and unrounded aggregation tools. |
 | [`tests/group_word_problems/`](tests/group_word_problems/) | Focused tests for the state-tracking task and exact A₅ construction. |
 | [`tests/audio_toys/`](tests/audio_toys/) | Focused tests for waveform generation, causality, and transition initialization. |
@@ -81,35 +89,6 @@ The language-modelling tests need no GPU and run in well under a minute:
 pytest -q tests/lm_scaling
 ```
 
-### A kernel test that fails on Ampere
-
-`tests/ops/test_complex_kda.py` compares the Triton kernels against reference
-implementations and needs a GPU. Four cases of `test_chunk_varlen` fail on an
-RTX 3090 Ti (sm_86) with `CUDA error: misaligned address`:
-
-```
-test_chunk_varlen[H4-D60-...-torch.float16-gateTrue-...-chunk_size32-*]
-```
-
-They are the **variable-length, float16, head-dimension-60** cells — a head
-dimension that is deliberately not a multiple of 8, to catch exactly this. The
-float32 cells at the same head dimension pass, as do all 11 other varlen cells.
-
-This predates this artifact and is not caused by the Complex-KDA changes: the
-same four cases fail identically on the internal checkout these kernels were
-taken from, under the same parameters and the same error. It is recorded here
-rather than marked `xfail`, because marking it would hide a real alignment bug
-behind a green suite.
-
-**A CUDA error poisons the context**, so every test after the first failure in
-the same process errors too — a full-file run reports 38 failed and 38 errors
-where four cases are actually at fault. Run a family on its own to see the real
-result:
-
-```bash
-pytest -q tests/ops/test_complex_kda.py::test_gate                  # 10 passed
-pytest -q tests/ops/test_complex_kda.py::test_chunk_varlen_prefill  # 11 passed, 9 skipped
-```
 
 ## Optional kernel implementations
 
@@ -175,13 +154,13 @@ These newly generated directories are ignored by Git. The curated files under [`
 ## Reproducibility notes
 
 - The public reproduction drivers pass all numerical settings explicitly and refuse to append silently to existing result files.
-- Paper runs use Muon for internal two-dimensional sequence-layer parameters and AdamW for adapters and remaining parameters.
+- Paper runs use Muon for internal two-dimensional sequence-layer parameters and AdamW for adapters and remaining parameters. Language Model runs use AdamW only for comparability.
 - CUDA uses optimized FLA kernels where available. CPU and Apple Silicon use the pure-PyTorch recurrent path and are suitable for smoke testing.
 - Reference metrics are single-run or best-of-three summaries as stated in each experiment guide; consult those guides before drawing statistical conclusions.
 
 ### The scaling ladder's external stack
 
-The ladder runs through Megatron-LM and oellm-autoexp, pinned by commit in
+The scaling ladder runs through [Megatron-LM](https://github.com/NVIDIA/Megatron-LM) and [oellm-autoexp](https://github.com/OpenEuroLLM/oellm-autoexp), pinned by commit in
 [`lm_scaling/megatron_stack.lock`](lm_scaling/megatron_stack.lock) and fetched
 on demand — the trees themselves are not vendored here. Two of the pinned
 commits are ours, on a branch named `feat/complex-kda` in each OpenEuroLLM
