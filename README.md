@@ -2,6 +2,7 @@
 [![Paper](https://img.shields.io/static/v1?label=Paper&message=2609.24797&color=B31B1B&logo=arXiv)](https://arxiv.org/abs/2609.24797)
 ![GitHub Repo stars](https://img.shields.io/github/stars/OpenEuroLLM/ComplexKDA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![hf_model](https://img.shields.io/badge/-Models-gray.svg?logo=huggingface&style=flat-square)](https://huggingface.co/collections/openeurollm/complexkda)
 
 
 > **Paper:** https://arxiv.org/abs/2609.24797
