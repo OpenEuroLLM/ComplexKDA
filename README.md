@@ -9,7 +9,9 @@
 >
 > **Authors:** Julien Siems, Riccardo Grazzi, Korbinian Pöppel, Jaisidh Singh, Arber Zela, Timur Carstensen, Jenia Jitsev, Frank Hutter, Volkan Cevher, Antonio Orvieto, Aaron Klein
 
-<img width="997" height="697" alt="image" src="https://github.com/user-attachments/assets/d243e734-3176-43f6-beb4-e98cb113a2c0" />
+<img width="5040" height="5040" alt="signed_kda_hand" src="https://github.com/user-attachments/assets/834ec8e1-aab4-4832-9980-4307a6cf3ede" />
+<img width="1545" height="794" alt="kda_alpha_sweep_4s_30fps_science_style_horizontal_boomerang" src="https://github.com/user-attachments/assets/785ee651-2f28-44da-a07f-5864a9bdfb40" />
+
 
 This repository is the reproducibility artifact for **Complex Kimi Delta Attention (CKDA)**. It contains the CKDA implementation built on [Flash Linear Attention (FLA)](https://github.com/fla-org/flash-linear-attention), together with the finite-group state-tracking and periodic-waveform experiments used in the paper.
 
