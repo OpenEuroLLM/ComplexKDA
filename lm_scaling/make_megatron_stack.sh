@@ -14,8 +14,7 @@
 #
 # WHY A LOCKFILE AT ALL, and why checked rather than merely written, is argued
 # in `megatron_stack.lock` itself. The short version: `hybrid_exp` is a branch
-# and branches move, and the three orchestration libraries are pip-installed
-# from a branch, so nothing in git pins them. A framework that shifts under a
+# and branches move. A framework that shifts under a
 # comparison built to hold the framework fixed is the one error this whole
 # ladder exists to remove -- the two frameworks already disagree by 0.049 nats
 # on identical configuration, which is larger than most of what is measured.
@@ -135,9 +134,9 @@ fi
 # --- our own commits in the external stack -----------------------------------
 #
 # Two of the pins in the lockfile are commits we made, not upstream's: one on
-# Megatron adding `--ckda-arm`, one on autoexp carrying it through the config
-# layer. Both sit on a branch called `feat/ckda-arm` in the respective
-# OpenEuroLLM repository.
+# Megatron adding the `complex_kda` attention variant, one on autoexp carrying
+# its fields through the config layer. Both sit on a branch called
+# `feat/complex-kda` in the respective OpenEuroLLM repository.
 #
 # They are pinned exactly like every other commit here, which is the point --
 # an earlier version of this script shipped them as patch files applied after
@@ -236,8 +235,9 @@ fi
 [ "$MODE" = verify ] && { echo "stack matches the lock"; exit 0; }
 
 # --- the venv ---------------------------------------------------------------
-# Its own, not the login venv: autoexp is installed editable into it, and the
-# three orchestration libraries are NOT in its pyproject.
+# Its own, not the login venv: autoexp is installed editable into it. The
+# orchestration libraries are vendored inside autoexp now; `pip` lines in the
+# lock (none at present) are still honoured for anything that is not.
 [ -x "$VENV/bin/python3" ] || python3 -m venv "$VENV"
 "$VENV/bin/python3" -m pip install --no-cache-dir --quiet --upgrade pip
 "$VENV/bin/python3" -m pip install --no-cache-dir --quiet -e "$DEST"
@@ -257,7 +257,8 @@ done < <(entries | awk '$1=="pip"')
 # into a queue.
 "$VENV/bin/python3" - <<'PY'
 import importlib
-for m in ("hydra_staged_sweep", "slurm_gen", "monitor"):
+for m in ("oellm_autoexp.hydra_staged_sweep", "oellm_autoexp.slurm_gen",
+          "oellm_autoexp.monitor"):
     importlib.import_module(m)
     print(f"  import {m}: ok")
 PY

@@ -355,13 +355,21 @@ arrangement that goes wrong quietly.
 The second commit is autoexp's three mirrors of Megatron's argument table, which
 the fields have to pass through.
 
-Those are **two ordinary commits**, one in each repository, on a branch named
-`feat/complex-kda`, and the lockfile pins them like everything else:
+Those are **ordinary commits**, on a branch named `feat/complex-kda` in each
+repository, and the lockfile pins them like everything else:
 
 ```
-oellm-autoexp           6cdc977a  on top of bd5a54b4 (hybrid_exp)
-submodules/Megatron-LM  40a52158  on top of 514b31b3
+oellm-autoexp           0323e25c  on top of 6cdc977a, on top of bd5a54b4 (hybrid_exp)
+submodules/Megatron-LM  7644b362  on top of 40a52158, on top of 514b31b3
 ```
+
+6cdc977a and 40a52158 are the variant itself and are what the first
+Megatron campaign ran on. 7644b362 makes `--ckpt-step` also select the
+distributed-optimizer state of a `torch`-format checkpoint (before it, a
+cooldown branching off an earlier trunk save silently resumed the trunk's
+latest state). 0323e25c carries that into autoexp together with the ladder
+as autoexp sweeps, `config/experiments/korbi/complex_kda/`, which includes a
+`ladder_finegrained` down to 1BT.
 
 Every field defaults to the underlying layer's own value, so both commits are
 inert unless the variant is selected — which is what makes them reasonable to
@@ -383,11 +391,10 @@ spec and the FLOP accounting — and a run whose model is built correctly still
 dies after the first step if only the first was taught about it. That is
 exactly what happened on the first attempt here.
 
-Until those branches are pushed, the two commits resolve only in a local
-checkout. `make_megatron_stack.sh --verify` says so in as many words rather
-than letting a fresh clone fail on `reference is not a tree`, and the notice
-disappears by itself once the branches exist on the remote — nothing in this
-repository needs editing when that happens.
+Both branches are pushed, so a fresh clone resolves both commits. Should a
+pin ever name a commit the remote does not have, `make_megatron_stack.sh
+--verify` says so in as many words rather than letting the clone fail on
+`reference is not a tree`.
 
 Its stack is pinned by [`megatron_stack.lock`](megatron_stack.lock) and
 materialised by one script:
@@ -401,8 +408,9 @@ bash lm_scaling/make_megatron_stack.sh --relock   # adopt what is checked out
 It clones `oellm-autoexp` at the locked commit into `external/` (gitignored —
 what belongs in git is the pin, not another project's tree), initialises its
 submodules, **checks every resolved commit against the lock**, then builds
-autoexp's own venv and installs the three orchestration libraries at their
-locked commits. `--verify` is the half worth running in anger: a pin that is
+autoexp's own venv. The orchestration libraries (hydra_staged_sweep, slurm_gen,
+monitor) are vendored inside autoexp at the locked commit, so pinning autoexp
+pins them. `--verify` is the half worth running in anger: a pin that is
 never checked is a comment.
 
 Two things it works around, both of which otherwise cost an afternoon:

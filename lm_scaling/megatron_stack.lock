@@ -12,9 +12,6 @@
 #     into this repository, where every clone without a GitHub SSH key would
 #     fail on repositories that are all public. The script rewrites those URLs
 #     instead, scoped to the clone it makes.
-#   * The three orchestration libraries are pip-installed from a BRANCH, so no
-#     git mechanism pins them at all. They are the part that actually drifts,
-#     and a submodule would not have helped.
 #   * `external/` is deliberately gitignored: the cluster checkout is synced,
 #     not committed, so what belongs in git is the pin, not the tree.
 #
@@ -26,47 +23,64 @@
 # than most of the effects being measured. `--verify` turns a moved pin into an
 # error instead of a footnote.
 #
-# THE COMMITS BELOW were resolved from the public repositories on 2026-09-17,
-# with the two exceptions below, and describe the stack the ladder ran on.
+# THE COMMITS BELOW were resolved on 2026-09-28. The first Megatron campaign
+# (harvest/megatron_ladder.tsv) ran on the previous pins, autoexp 6cdc977a and
+# Megatron 40a52158 -- the parents of the current ones, which add the sweep
+# configs and one checkpoint-loading fix and change nothing about the model.
 #
-# TWO COMMITS ARE OURS AND ARE NOT UPSTREAM'S. The study needs one argument
-# Megatron does not have -- `--ckda-arm`, which tells the spec module which arm
-# of the ladder to build -- and the three autoexp files that mirror Megatron's
-# argument table, so the value survives autoexp's config layer. Both live on a
-# branch named `feat/complex-kda` in the respective OpenEuroLLM repository:
+# TWO PINS ARE OURS AND NOT UPSTREAM'S, both on a branch named
+# `feat/complex-kda` in the respective OpenEuroLLM repository, both pushed:
 #
-#   oellm-autoexp          6cdc977a  on top of bd5a54b4 (hybrid_exp)
-#   submodules/Megatron-LM 40a52158  on top of 514b31b3
+#   submodules/Megatron-LM 7644b362  two commits on top of 514b31b3
+#     40a52158  adds `complex_kda` as an experimental attention variant. The arms are
+#       NOT selected by an arm name: Megatron builds the mixer from
+#       `--experimental-attention-variant complex_kda` and the gate fields
+#       (`--linear-gate-activation`, `--linear-beta-max`, `--linear-output-gate`,
+#       `--linear-drop-qkv-silu`, `--linear-hybrid-attention`, ...), placed by
+#       `--linear-attention-freq`, exactly as GatedDeltaNet is. (An earlier
+#       draft of this file described a `--ckda-arm` argument; it was never
+#       added. The CKDA_ARM variable submit_ladder.py still exports is read by
+#       nothing.)
+#     7644b362  makes `--ckpt-step` also select the distributed-optimizer state
+#       of a `torch`-format checkpoint. Before it, Megatron re-read the tracker
+#       for that state, so a cooldown branching off an earlier trunk save got
+#       the trunk's LATEST master weights and iteration, trained nothing and
+#       exited 0 -- the failure the branch views in submit_ladder.py exist to
+#       dodge. They stay harmless; with this commit they are no longer needed.
+#   oellm-autoexp          0323e25c  two commits on top of bd5a54b4 (hybrid_exp)
+#     6cdc977a  the three files that mirror Megatron's argument table
+#       (base_defaults.yaml, cli_metadata.py, config_schema.py), so those
+#       fields survive autoexp's config layer.
+#     0323e25c  the ladder as autoexp sweeps, `config/experiments/korbi/
+#       complex_kda/`: a spec, a generator, and generated stable -> cooldown
+#       sweeps for ladder, ladder_medium and ladder_finegrained (the latter
+#       adding 1-4BT at 47M-302M); and the submodule move to 7644b362.
 #
 # They are ordinary commits on ordinary branches, not a patch applied over
 # someone else's tree, so `git log` says who changed what and a reader gets
 # them from the same clone as everything else.
 #
-# UNTIL THOSE BRANCHES ARE PUSHED the two commits resolve only in a local
-# checkout, and `make_megatron_stack.sh` says so plainly rather than failing
-# with a bare "reference is not a tree". Pushing them is the last step of
-# preparing this release; nothing else about the stack changes when it happens.
+# THE ORCHESTRATION LIBRARIES ARE NO LONGER PINNED HERE. hydra_staged_sweep,
+# slurm_gen and monitor used to be pip-installed from a branch, which no git
+# mechanism pinned -- the reason this file existed in the first place. autoexp
+# has since vendored all three (`oellm_autoexp/{hydra_staged_sweep,slurm_gen,
+# monitor}`, commit 9ba40f1, an ancestor of the pin below) and imports only the
+# vendored copies, so the autoexp commit pins them and separate pip installs
+# would be dead weight.
 
 # --- cloned by the script ---------------------------------------------------
 
-# `feat/complex-kda` is OURS, one commit on top of `hybrid_exp`. The commit is the
+# `feat/complex-kda` is OURS, two commits on top of `hybrid_exp`. The commit is the
 # pin; the branch is how to fetch it cheaply, and where to push it.
-repo       oellm-autoexp            https://github.com/OpenEuroLLM/oellm-autoexp.git          6cdc977af6c8c70bd03351a700fd8dd4a4b3d8c9  feat/complex-kda
+repo       oellm-autoexp            https://github.com/OpenEuroLLM/oellm-autoexp.git          0323e25c66a9a2bfc83eb12c4c867823aea9ac0d  feat/complex-kda
 
 # --- pinned BY autoexp's tree, recorded here so a moved pin is visible -------
 # The script does not clone these itself -- `submodule update --recursive`
 # does, from the parent commit above -- it checks that what landed is this.
-# Also ours: one commit on top of 514b31b3, adding the complex_kda variant and
-# nothing else. The branch column is documentation -- submodules resolve from
+# Also ours: two commits on top of 514b31b3, the complex_kda variant and the
+# --ckpt-step fix. The branch column is documentation -- submodules resolve from
 # the parent commit above, not from a branch.
-submodule  submodules/Megatron-LM      https://github.com/OpenEuroLLM/NVIDIA-Megatron-LM.git  40a521583dcccd0ef1dd03b5a9f083d84dc8533b  feat/complex-kda
+submodule  submodules/Megatron-LM      https://github.com/OpenEuroLLM/NVIDIA-Megatron-LM.git  7644b3626826c626eeeb45ce979532983844b298  feat/complex-kda
 submodule  submodules/titan-oellm      https://github.com/OpenEuroLLM/titan-oellm.git         11e1737b44ad6cb43998851ce742951a86c6c985
 submodule  submodules/oellm_evals      https://github.com/OpenEuroLLM/oellm-evals.git         5e8225c5e116e514a9ed9569ababdf733291543b
 submodule  submodules/Megatron-Bridge  https://github.com/NVIDIA-NeMo/Megatron-Bridge.git     0dae728241d4ead96c5da7aba7d2a383e58bf7d7
-
-# --- pip-installed into autoexp's venv --------------------------------------
-# NOT in autoexp's pyproject, and pinned to a branch upstream: these are the
-# entries that make this file worth having.
-pip        hydra_staged_sweep       https://github.com/kpoeppel/hydra_staged_sweep.git        c2c469ae7faa00234efa9ad90a287e6581fac44c  main
-pip        slurm_gen                https://github.com/kpoeppel/slurm_gen.git                 b8bbeaafe313dec388439a03131f3c7f0b8d6fcd  main
-pip        monitor                  https://github.com/kpoeppel/monitor.git                   bffba51ba1c9b8ea5b0313f56dcc33defcbe02e2  main
