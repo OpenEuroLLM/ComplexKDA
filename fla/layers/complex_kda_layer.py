@@ -496,6 +496,7 @@ class ComplexKimiDeltaAttention(nn.Module):
         conv_bias: bool = False,
         layer_idx: int = None,
         norm_eps: float = 1e-5,
+        xsa: bool = False,
         **kwargs,
     ) -> ComplexKimiDeltaAttention:
         super().__init__()
@@ -543,6 +544,8 @@ class ComplexKimiDeltaAttention(nn.Module):
         self.key_dim = int(self.num_heads * self.head_k_dim)
         self.value_dim = int(self.num_v_heads * self.head_v_dim)
         self.layer_idx = layer_idx
+        # exclusive self attention on the output (fla/modules/xsa.py)
+        self.xsa = xsa
 
         # Consistency check: Ensure expand_v produces integer values
         if not math.isclose(self.num_v_heads * self.head_dim * expand_v, self.value_dim, rel_tol=1e-5):
@@ -801,6 +804,12 @@ class ComplexKimiDeltaAttention(nn.Module):
             offset=q_len,
         )
 
+        if self.xsa:
+            from fla.modules.xsa import exclusive_self_attention
+
+            o = exclusive_self_attention(
+                o.reshape(-1, *o.shape[-2:]), v.reshape(-1, *v.shape[-2:])
+            ).view_as(o)
         o = self.o_norm(o, rearrange(self.g_proj(hidden_states), "... (h d) -> ... h d", d=self.head_v_dim))
         o = rearrange(o, "b t h d -> b t (h d)")
         o = self.o_proj(o)
