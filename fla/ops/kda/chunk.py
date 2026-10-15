@@ -465,7 +465,11 @@ def _chunk_kda_impl(
     # Validate head dimensions for GVA
     B, T, H, K, HV = *q.shape, v.shape[2]
     assert q.shape == k.shape, f"q and k must have the same shape, got q={q.shape} vs k={k.shape}"
-    assert K <= 256, f"Currently we only support key headdim <=256 for KDA, got {K}."
+    if K > 256 and state_v_first:
+        raise ValueError(
+            f"key head dim {K} > 256 runs on the wide-key state kernels, which take the "
+            "K-major state layout: pass state_v_first=False"
+        )
     assert HV % H == 0, (
         f"For GVA, num_v_heads (HV={HV}) must be evenly divisible by num_qk_heads (H={H}), "
         f"but got HV % H = {HV % H}"

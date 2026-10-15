@@ -701,7 +701,16 @@ def chunk_gated_delta_rule_fwd_h(
         N, NT, chunk_offsets = B, triton.cdiv(T, BT), None
     else:
         N, NT, chunk_offsets = len(cu_seqlens) - 1, len(chunk_indices), prepare_chunk_offsets(cu_seqlens, BT)
-    assert K <= 256, "current kernel does not support head dimension larger than 256."
+    if K > 256:
+        # wide keys (e.g. triadic joint keys): the global-memory state recurrence
+        from fla.ops.common.chunk_delta_h_wide import wide_fwd_h
+
+        return wide_fwd_h(
+            k, w, u, g=g, gk=gk, initial_state=initial_state,
+            output_final_state=output_final_state, chunk_size=chunk_size,
+            save_new_value=save_new_value, state_v_first=state_v_first,
+            cu_seqlens=cu_seqlens, chunk_indices=chunk_indices,
+        )
 
     if state_v_first:
         h = k.new_empty(B, NT, HV, V, K)
@@ -755,7 +764,14 @@ def chunk_gated_delta_rule_bwd_dhu(
     B, T, H, K, V, HV = *q.shape, do.shape[-1], do.shape[2]
     # N: the actual number of sequences in the batch with either equal or variable lengths
     BT = chunk_size
-    assert K <= 256, "current kernel does not support head dimension being larger than 256."
+    if K > 256:
+        from fla.ops.common.chunk_delta_h_wide import wide_bwd_dhu
+
+        return wide_bwd_dhu(
+            q, k, w, do, dv, g=g, gk=gk, h0=h0, dht=dht, scale=scale,
+            state_v_first=state_v_first, cu_seqlens=cu_seqlens, chunk_size=chunk_size,
+            chunk_indices=chunk_indices,
+        )
 
     if chunk_indices is None and cu_seqlens is not None:
         chunk_indices = prepare_chunk_indices(cu_seqlens, chunk_size)
