@@ -354,8 +354,39 @@ class ComplexKDAModel(ComplexKDAPreTrainedModel):
         )
 
 
+def _tied_weights_keys_declaration():
+    """How this transformers spells "lm_head.weight IS the embedding".
+
+        4.x   a LIST of regex patterns matched against parameter names
+        5.x   a {target: source} MAPPING
+
+    THE WRONG ONE IS NOT A WARNING. A list under transformers 5 raises
+    `'list' object has no attribute 'keys'` from inside `post_init` -- for
+    TIED checkpoints and only for those, so it passes every check against an
+    untied model and then fails for every tied one. Every cell of the
+    ComplexKDA scaling ladder ties its embeddings.
+
+    The annotation is read first because it is the thing that actually
+    changed; the version number is the fallback for a build that carries
+    neither.
+    """
+    mapping = {"lm_head.weight": "model.embeddings.weight"}
+    patterns = ["lm_head.weight"]
+    try:
+        annotation = str(getattr(PreTrainedModel, "__annotations__", {}).get("_tied_weights_keys", ""))
+        if annotation:
+            return mapping if "dict" in annotation.lower() else patterns
+    except Exception:
+        pass
+    try:
+        import transformers
+        return mapping if int(str(transformers.__version__).split(".")[0]) >= 5 else patterns
+    except Exception:
+        return patterns
+
+
 class ComplexKDAForCausalLM(ComplexKDAPreTrainedModel, FLAUnsupportedCacheGenerationMixin):
-    _tied_weights_keys = ["lm_head.weight"]
+    _tied_weights_keys = _tied_weights_keys_declaration()
 
     def __init__(self, config):
         super().__init__(config)
