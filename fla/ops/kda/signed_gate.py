@@ -22,7 +22,7 @@ import math
 import torch
 import triton
 import triton.language as tl
-import triton.language.extra.libdevice as tldevice
+import triton.language.extra.libdevice  # noqa: F401  (tl.extra.libdevice: also resolvable when Inductor re-emits the kernels)
 
 
 @triton.jit
@@ -42,11 +42,11 @@ def _signed_gate_fwd_kernel(z, dt_bias, A_log, g, sign, N, C, K: tl.constexpr, S
     if HAS_A:
         A = tl.exp(tl.load(A_log + cols // K, mask=cm, other=0.0).to(tl.float32))
     if MODE == 0:  # signed: sign(a), log(eps + (1 - eps)|a|), a = tanh(s A u)
-        a = tldevice.tanh(SCALE * (u * A[None, :]))
+        a = tl.extra.libdevice.tanh(SCALE * (u * A[None, :]))
         tl.store(g + off, tl.log(EPS + (1.0 - EPS) * tl.abs(a)), mask=m)
         tl.store(sign + off, tl.where(a < 0, -1, 1).to(tl.int8), mask=m)
     elif MODE == 1:  # softplus: -A softplus(u) (torch's threshold 20)
-        sp = tl.where(u > 20.0, u, tldevice.log1p(tl.exp(tl.minimum(u, 20.0))))
+        sp = tl.where(u > 20.0, u, tl.extra.libdevice.log1p(tl.exp(tl.minimum(u, 20.0))))
         tl.store(g + off, -A[None, :] * sp, mask=m)
     else:  # sigmoid: lower_bound * sigmoid(A u)
         tl.store(g + off, LB * tl.sigmoid(u * A[None, :]), mask=m)
@@ -71,7 +71,7 @@ def _signed_gate_bwd_kernel(z, dt_bias, A_log, dg, dz, ddt_part, dA_part, N, C,
         A = tl.exp(tl.load(A_log + cols // K, mask=cm, other=0.0).to(tl.float32))
     dgv = tl.load(dg + off, mask=m, other=0.0).to(tl.float32)
     if MODE == 0:
-        a = tldevice.tanh(SCALE * (u0 * A[None, :]))
+        a = tl.extra.libdevice.tanh(SCALE * (u0 * A[None, :]))
         # d|a|/da = sign(a) with 0 at a = 0 (torch's abs backward)
         sgn = tl.where(a > 0, 1.0, tl.where(a < 0, -1.0, 0.0))
         # du: d/d(A u0); dz = du * A, dA = du * u0
@@ -79,7 +79,7 @@ def _signed_gate_bwd_kernel(z, dt_bias, A_log, dg, dz, ddt_part, dA_part, N, C,
         dzv = du * A[None, :]
         dAv = du * u0
     elif MODE == 1:
-        sp = tl.where(u0 > 20.0, u0, tldevice.log1p(tl.exp(tl.minimum(u0, 20.0))))
+        sp = tl.where(u0 > 20.0, u0, tl.extra.libdevice.log1p(tl.exp(tl.minimum(u0, 20.0))))
         dzv = -dgv * A[None, :] * tl.where(u0 > 20.0, 1.0, tl.sigmoid(u0))
         dAv = -dgv * sp
     else:
