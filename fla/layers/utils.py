@@ -319,22 +319,33 @@ def fused_linear(x: torch.Tensor, linears) -> tuple[torch.Tensor, ...]:
 
 def fused_short_convs(x: torch.Tensor, convs, cu_seqlens: torch.Tensor | None = None):
     """Several ``ShortConvolution`` over consecutive channel blocks of ``x`` [B, T, sum D]
-    as ONE causal-conv launch (same kernel size and activation; no cache)."""
+    with as few causal-conv launches as possible: one per run of consecutive convs with the
+    same activation (same kernel size; no cache)."""
     from fla.modules.conv.causal_conv1d import causal_conv1d
 
-    act = convs[0].activation
-    assert all(c.activation == act and c.kernel_size == convs[0].kernel_size for c in convs)
-    weight = torch.cat([c.weight for c in convs], dim=0).squeeze(1)
-    bias = None
-    if any(c.bias is not None for c in convs):
-        bias = torch.cat([
-            c.bias if c.bias is not None else c.weight.new_zeros(c.weight.shape[0]) for c in convs
-        ])
-    y, _ = causal_conv1d(
-        x=x.contiguous(), weight=weight, bias=bias, activation=act,
-        backend=convs[0].backend, cu_seqlens=cu_seqlens,
-    )
-    return torch.split(y, [c.weight.shape[0] for c in convs], dim=-1)
+    assert all(c.kernel_size == convs[0].kernel_size for c in convs)
+    sizes = [c.weight.shape[0] for c in convs]
+    outs, start, i = [], 0, 0
+    while i < len(convs):
+        j = i
+        while j + 1 < len(convs) and convs[j + 1].activation == convs[i].activation:
+            j += 1
+        run = convs[i : j + 1]
+        width = sum(sizes[i : j + 1])
+        weight = torch.cat([c.weight for c in run], dim=0).squeeze(1)
+        bias = None
+        if any(c.bias is not None for c in run):
+            bias = torch.cat([
+                c.bias if c.bias is not None else c.weight.new_zeros(c.weight.shape[0]) for c in run
+            ])
+        y, _ = causal_conv1d(
+            x=x[..., start : start + width].contiguous(), weight=weight, bias=bias,
+            activation=run[0].activation, backend=run[0].backend, cu_seqlens=cu_seqlens,
+        )
+        outs.extend(torch.split(y, sizes[i : j + 1], dim=-1))
+        start += width
+        i = j + 1
+    return tuple(outs)
 
 
 def fused_linear_qkv(x: torch.Tensor, conv_linears, other_linears) -> tuple[torch.Tensor, ...]:
