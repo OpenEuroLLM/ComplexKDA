@@ -16,7 +16,13 @@ import torch.nn as nn
 from einops import rearrange
 from torch.nn import functional as F
 
-from fla.layers.utils import get_layer_cache, repad_hidden_states, unpad_hidden_states, update_layer_cache
+from fla.layers.utils import (
+    fused_linear_qkv,
+    get_layer_cache,
+    repad_hidden_states,
+    unpad_hidden_states,
+    update_layer_cache,
+)
 from fla.modules import FusedRMSNormGated, RMSNorm, ShortConvolution
 from fla.modules.convolution import causal_conv1d
 from fla.ops.gated_delta_rule import chunk_gated_delta_rule, fused_recurrent_gated_delta_rule
@@ -225,6 +231,8 @@ class GatedDeltaNet(nn.Module):
         else:
             self.o_norm = RMSNorm(self.head_v_dim, eps=norm_eps, dtype=torch.float32)
         self.o_proj = nn.Linear(self.value_dim, hidden_size, bias=False)
+        # one GEMM for the input projections (with the fused q/k/v conv, no cache only)
+        self.fuse_projections = True
 
     def _use_fused_qkv_conv(
         self,
@@ -248,7 +256,7 @@ class GatedDeltaNet(nn.Module):
             return False
         if not (self.use_short_conv and last_state is None and not use_cache and cu_seqlens is None):
             return False
-        return (
+        return self.fuse_projections and (
             self.q_conv1d.backend == self.k_conv1d.backend == self.v_conv1d.backend and
             self.q_conv1d.activation == self.k_conv1d.activation == self.v_conv1d.activation and
             self.q_conv1d.kernel_size == self.k_conv1d.kernel_size == self.v_conv1d.kernel_size
@@ -282,15 +290,14 @@ class GatedDeltaNet(nn.Module):
         hidden_states, indices, cu_seqlens = unpad_hidden_states(hidden_states, cu_seqlens, attention_mask, q_len)
 
         conv_state_q, conv_state_k, conv_state_v = None, None, None
+        a_out = beta = g_out = None
         if self._use_fused_qkv_conv(last_state, use_cache, cu_seqlens, hidden_states.is_cuda):
-            qkv = torch.cat(
-                [
-                    self.q_proj(hidden_states),
-                    self.k_proj(hidden_states),
-                    self.v_proj(hidden_states),
-                ],
-                dim=-1,
+            # all input projections as one GEMM (weights concatenated at run time)
+            others = [self.a_proj, self.b_proj] + ([self.g_proj] if self.use_gate else [])
+            qkv, a_out, beta, *g_out = fused_linear_qkv(
+                hidden_states, [self.q_proj, self.k_proj, self.v_proj], others
             )
+            g_out = g_out[0] if g_out else None
             qkv_weight = torch.cat(
                 [
                     self.q_conv1d.weight.squeeze(1),
@@ -304,7 +311,7 @@ class GatedDeltaNet(nn.Module):
             else:
                 qkv_bias = None
             qkv, _ = causal_conv1d(
-                x=qkv,
+                x=qkv.contiguous(),
                 weight=qkv_weight,
                 bias=qkv_bias,
                 activation=self.q_conv1d.activation,
@@ -340,7 +347,10 @@ class GatedDeltaNet(nn.Module):
         q, k = map(lambda x: rearrange(x, '... (h d) -> ... h d', d=self.head_k_dim), (q, k))
         v = rearrange(v, '... (h d) -> ... h d', d=self.head_v_dim)
 
-        beta = self.b_proj(hidden_states)
+        if beta is None:
+            beta = self.b_proj(hidden_states)
+        if a_out is None:
+            a_out = self.a_proj(hidden_states)
 
         recurrent_state = last_state['recurrent_state'] if last_state is not None else None
         # ON THE TENSORS, NOT THE MACHINE. `HAS_TRITON` is
@@ -357,7 +367,7 @@ class GatedDeltaNet(nn.Module):
             # into it. Mirrors fla.layers.complex_kda_layer's naive_kda_call.
             q_n = F.normalize(q.float(), dim=-1)
             k_n = F.normalize(k.float(), dim=-1)
-            g_naive = naive_gdn_gate(self.a_proj(hidden_states), self.A_log, self.dt_bias)
+            g_naive = naive_gdn_gate(a_out, self.A_log, self.dt_bias)
             beta_naive = torch.sigmoid(beta.float()) * (2.0 if self.allow_neg_eigval else 1.0)
             o, recurrent_state = naive_recurrent_gated_delta_rule(
                 q=q_n, k=k_n, v=v.float(), beta=beta_naive, g=g_naive,
@@ -371,7 +381,7 @@ class GatedDeltaNet(nn.Module):
                 q=q,
                 k=k,
                 v=v,
-                g=self.a_proj(hidden_states),
+                g=a_out,
                 beta=beta,
                 A_log=self.A_log,
                 dt_bias=self.dt_bias,
@@ -389,7 +399,7 @@ class GatedDeltaNet(nn.Module):
                 q=q,
                 k=k,
                 v=v,
-                g=self.a_proj(hidden_states),
+                g=a_out,
                 beta=beta,
                 A_log=self.A_log,
                 dt_bias=self.dt_bias,
@@ -420,7 +430,8 @@ class GatedDeltaNet(nn.Module):
                 o.reshape(-1, *o.shape[-2:]), v.reshape(-1, *v.shape[-2:])
             ).view_as(o)
         if self.use_gate:
-            g = rearrange(self.g_proj(hidden_states), '... (h d) -> ... h d', d=self.head_v_dim)
+            gate = g_out if g_out is not None else self.g_proj(hidden_states)
+            g = rearrange(gate, '... (h d) -> ... h d', d=self.head_v_dim)
             o = self.o_norm(o, g)
         else:
             o = self.o_norm(o)

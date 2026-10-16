@@ -4,7 +4,7 @@ same as the module-by-module path (fuse_projections=False)."""
 import pytest
 import torch
 
-from fla.layers import KimiDeltaAttention
+from fla.layers import GatedDeltaNet, KimiDeltaAttention
 from fla.layers.complex_kda_layer import ComplexKimiDeltaAttention as ComplexKDA
 from fla.utils import device
 
@@ -12,6 +12,7 @@ from fla.utils import device
 @pytest.mark.parametrize("varlen", [False, True])
 @pytest.mark.parametrize("make", [
     lambda: KimiDeltaAttention(hidden_size=128, head_dim=32, num_heads=4, mode="chunk"),
+    lambda: GatedDeltaNet(hidden_size=128, head_dim=32, num_heads=4, mode="chunk"),
     lambda: ComplexKDA(hidden_size=128, head_dim=32, num_heads=4, mode="chunk"),
     # mixed conv activations (two launches) and a full-rank output gate
     lambda: ComplexKDA(hidden_size=128, head_dim=32, num_heads=4, mode="chunk", conv_silu="qv",
