@@ -38,3 +38,34 @@ def test_matches_eager(activation, with_params, shape):
     for a, b in zip(got[3:], ref[3:]):
         if b is not None:
             torch.testing.assert_close(a, b, rtol=1e-3, atol=1e-3)
+
+
+@pytest.mark.parametrize("gate", ["softplus", "sigmoid"])
+def test_unsigned_gates_match_eager(gate):
+    from fla.ops.kda.signed_gate import fused_gate
+
+    torch.manual_seed(1)
+    B, T, H, K = 2, 50, 3, 64
+    z = 3 * torch.randn(B, T, H, K, device="cuda", dtype=torch.bfloat16)
+    z[0, 0, 0, :4] = torch.tensor([25.0, -30.0, 0.0, 19.9])  # around softplus' threshold
+    dt0 = 0.3 * torch.randn(H, K, device="cuda")
+    A0 = 0.2 * torch.randn(H, device="cuda")
+    dg = torch.randn(B, T, H, K, device="cuda")
+
+    def eager(zz, aa, dd):
+        u = zz.float() + dd
+        A = aa.exp().view(-1, 1)
+        return -A * torch.nn.functional.softplus(u) if gate == "softplus" else -5.0 * torch.sigmoid(A * u)
+
+    grads = []
+    for fn in (eager, lambda zz, aa, dd: fused_gate(gate, zz, aa, dd, -5.0)[1]):
+        zz = z.detach().clone().requires_grad_(True)
+        aa = A0.detach().clone().requires_grad_(True)
+        dd = dt0.detach().clone().requires_grad_(True)
+        g = fn(zz, aa, dd)
+        g.backward(dg)
+        grads.append((g.detach(), zz.grad.float(), dd.grad, aa.grad))
+    (g1, *r1), (g2, *r2) = grads
+    torch.testing.assert_close(g2, g1, rtol=1e-5, atol=1e-5)
+    for a, b in zip(r2, r1):
+        torch.testing.assert_close(a, b, rtol=1e-3, atol=1e-2)
