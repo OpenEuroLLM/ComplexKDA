@@ -233,6 +233,12 @@ class KimiDeltaAttention(nn.Module):
 
         cu_seqlens = kwargs.get("cu_seqlens")
         hidden_states, indices, cu_seqlens = unpad_hidden_states(hidden_states, cu_seqlens, attention_mask, q_len)
+        # context parallel (fla.ops.cp): B = 1 rank-local token stream; the convs and the chunk
+        # kernel take the rank-local cu_seqlens and the cross-rank exchange from the context
+        cp_context = kwargs.get("cp_context")
+        cp_kw = {"cp_context": cp_context} if cp_context is not None else {}
+        if cp_context is not None:
+            cu_seqlens = None
 
         # Training / no cache: all input projections as one GEMM, the q/k/v short
         # convolutions as one launch (same parameters; fuse_projections=False: per module).
@@ -243,7 +249,7 @@ class KimiDeltaAttention(nn.Module):
             qkv, f_low, beta, g_low = fused_linear_qkv(
                 hidden_states, [self.q_proj, self.k_proj, self.v_proj], [self.f_proj[0], self.b_proj, self.g_proj[0]]
             )
-            q, k, v = fused_short_convs(qkv, [self.q_conv1d, self.k_conv1d, self.v_conv1d], cu_seqlens)
+            q, k, v = fused_short_convs(qkv, [self.q_conv1d, self.k_conv1d, self.v_conv1d], cu_seqlens, **cp_kw)
             g = self.f_proj[1](f_low)
         elif self.use_short_conv:
             conv_state_q, conv_state_k, conv_state_v = None, None, None
@@ -253,19 +259,19 @@ class KimiDeltaAttention(nn.Module):
                 x=self.q_proj(hidden_states),
                 cache=conv_state_q,
                 output_final_state=use_cache,
-                cu_seqlens=cu_seqlens,
+                cu_seqlens=cu_seqlens, **cp_kw,
             )
             k, conv_state_k = self.k_conv1d(
                 x=self.k_proj(hidden_states),
                 cache=conv_state_k,
                 output_final_state=use_cache,
-                cu_seqlens=cu_seqlens,
+                cu_seqlens=cu_seqlens, **cp_kw,
             )
             v, conv_state_v = self.v_conv1d(
                 x=self.v_proj(hidden_states),
                 cache=conv_state_v,
                 output_final_state=use_cache,
-                cu_seqlens=cu_seqlens,
+                cu_seqlens=cu_seqlens, **cp_kw,
             )
         else:
             q = F.silu(self.q_proj(hidden_states))
@@ -300,7 +306,7 @@ class KimiDeltaAttention(nn.Module):
                 safe_gate=self.safe_gate,
                 lower_bound=self.lower_bound,
                 state_v_first=self.head_k_dim <= 256,  # K > 256: the wide-key kernels' K-major state
-                cu_seqlens=cu_seqlens,
+                cu_seqlens=cu_seqlens, **cp_kw,
             )
         elif mode == "fused_recurrent":
             o, recurrent_state = fused_recurrent_kda(

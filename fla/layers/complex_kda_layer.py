@@ -688,6 +688,12 @@ class ComplexKimiDeltaAttention(nn.Module):
 
         cu_seqlens = kwargs.get("cu_seqlens")
         hidden_states, indices, cu_seqlens = unpad_hidden_states(hidden_states, cu_seqlens, attention_mask, q_len)
+        # context parallel (fla.ops.cp): B = 1 rank-local token stream; the convs and the chunk
+        # kernel take the rank-local cu_seqlens and the cross-rank exchange from the context
+        cp_context = kwargs.get("cp_context")
+        cp_kw = {"cp_context": cp_context} if cp_context is not None else {}
+        if cp_context is not None:
+            cu_seqlens = None
 
         # Training / no cache on GPU: all input projections as one GEMM, the q/k/v short
         # convolutions in as few launches as their activations allow (same parameters;
@@ -705,7 +711,7 @@ class ComplexKimiDeltaAttention(nn.Module):
                 [self.q_proj, self.k_proj, self.v_proj],
                 [self.f_proj[0], self.b_proj, self.g_proj[0] if lowrank_gate else self.g_proj],
             )
-            q, k, v = fused_short_convs(qkv, [self.q_conv1d, self.k_conv1d, self.v_conv1d], cu_seqlens)
+            q, k, v = fused_short_convs(qkv, [self.q_conv1d, self.k_conv1d, self.v_conv1d], cu_seqlens, **cp_kw)
             g = self.f_proj[1](f_low)
             if lowrank_gate:
                 g_low = self.g_proj[1](g_low)
@@ -717,19 +723,19 @@ class ComplexKimiDeltaAttention(nn.Module):
                 x=self.q_proj(hidden_states),
                 cache=conv_state_q,
                 output_final_state=use_cache,
-                cu_seqlens=cu_seqlens,
+                cu_seqlens=cu_seqlens, **cp_kw,
             )
             k, conv_state_k = self.k_conv1d(
                 x=self.k_proj(hidden_states),
                 cache=conv_state_k,
                 output_final_state=use_cache,
-                cu_seqlens=cu_seqlens,
+                cu_seqlens=cu_seqlens, **cp_kw,
             )
             v, conv_state_v = self.v_conv1d(
                 x=self.v_proj(hidden_states),
                 cache=conv_state_v,
                 output_final_state=use_cache,
-                cu_seqlens=cu_seqlens,
+                cu_seqlens=cu_seqlens, **cp_kw,
             )
         else:
             q = self.act(self.q_proj(hidden_states))
@@ -783,7 +789,7 @@ class ComplexKimiDeltaAttention(nn.Module):
                     safe_gate=self.safe_gate,
                     lower_bound=self.lower_bound,
                     state_v_first=self.head_k_dim <= 256,  # K > 256: the wide-key kernels' K-major state
-                    cu_seqlens=cu_seqlens,
+                    cu_seqlens=cu_seqlens, **cp_kw,
                 )
             elif mode == "fused_recurrent":
                 o, recurrent_state = fused_recurrent_kda(

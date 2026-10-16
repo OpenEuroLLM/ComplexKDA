@@ -317,7 +317,7 @@ def fused_linear(x: torch.Tensor, linears) -> tuple[torch.Tensor, ...]:
     return torch.split(y, [m.out_features for m in linears], dim=-1)
 
 
-def fused_short_convs(x: torch.Tensor, convs, cu_seqlens: torch.Tensor | None = None):
+def fused_short_convs(x: torch.Tensor, convs, cu_seqlens: torch.Tensor | None = None, **kwargs):
     """Several ``ShortConvolution`` over consecutive channel blocks of ``x`` [B, T, sum D]
     with as few causal-conv launches as possible: one per run of consecutive convs with the
     same activation (same kernel size; no cache)."""
@@ -340,7 +340,7 @@ def fused_short_convs(x: torch.Tensor, convs, cu_seqlens: torch.Tensor | None = 
             ])
         y, _ = causal_conv1d(
             x=x[..., start : start + width].contiguous(), weight=weight, bias=bias,
-            activation=run[0].activation, backend=run[0].backend, cu_seqlens=cu_seqlens,
+            activation=run[0].activation, backend=run[0].backend, cu_seqlens=cu_seqlens, **kwargs,
         )
         outs.extend(torch.split(y, sizes[i : j + 1], dim=-1))
         start += width

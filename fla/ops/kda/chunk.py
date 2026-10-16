@@ -73,6 +73,11 @@ class ChunkKDAFunction(torch.autograd.Function):
                 p = sign_cumprod_parallel(sign, block_t=128, block_d=64)
             else:
                 p = kda_sign_cumprod(sign, cu_seqlens)
+            if cp_context is not None:
+                # rank-local products restart at rank boundaries: carry the earlier ranks' parity
+                from fla.ops.cp.sign import cp_sign_prefix
+
+                p = cp_sign_prefix(p, cp_context)
         q_rstd, k_rstd = None, None
         if use_qk_l2norm_in_kernel:
             if implementation.paired_norm and (p is not None or implementation.fuse_norm):
