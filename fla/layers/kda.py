@@ -299,7 +299,7 @@ class KimiDeltaAttention(nn.Module):
                 allow_neg_eigval=self.allow_neg_eigval,
                 safe_gate=self.safe_gate,
                 lower_bound=self.lower_bound,
-                state_v_first=True,
+                state_v_first=self.head_k_dim <= 256,  # K > 256: the wide-key kernels' K-major state
                 cu_seqlens=cu_seqlens,
             )
         elif mode == "fused_recurrent":
@@ -318,7 +318,7 @@ class KimiDeltaAttention(nn.Module):
                 use_beta_sigmoid_in_kernel=True,
                 allow_neg_eigval=self.allow_neg_eigval,
                 lower_bound=self.lower_bound,
-                state_v_first=True,
+                state_v_first=self.head_k_dim <= 256,  # K > 256: the wide-key kernels' K-major state
                 cu_seqlens=cu_seqlens,
             )
         else:
