@@ -45,8 +45,8 @@ def _signed_gate_fwd_kernel(z, dt_bias, A_log, g, sign, N, C, K: tl.constexpr, S
         a = tl.extra.libdevice.tanh(SCALE * (u * A[None, :]))
         tl.store(g + off, tl.log(EPS + (1.0 - EPS) * tl.abs(a)), mask=m)
         tl.store(sign + off, tl.where(a < 0, -1, 1).to(tl.int8), mask=m)
-    elif MODE == 1:  # softplus: -A softplus(u) (torch's threshold 20)
-        sp = tl.where(u > 20.0, u, tl.extra.libdevice.log1p(tl.exp(tl.minimum(u, 20.0))))
+    elif MODE == 1:  # softplus: -A softplus(u), the overflow-free form
+        sp = tl.maximum(u, 0.0) + tl.log(1.0 + tl.exp(-tl.abs(u)))  # no libdevice log1p on older Triton
         tl.store(g + off, -A[None, :] * sp, mask=m)
     else:  # sigmoid: lower_bound * sigmoid(A u)
         tl.store(g + off, LB * tl.sigmoid(u * A[None, :]), mask=m)
@@ -79,8 +79,8 @@ def _signed_gate_bwd_kernel(z, dt_bias, A_log, dg, dz, ddt_part, dA_part, N, C,
         dzv = du * A[None, :]
         dAv = du * u0
     elif MODE == 1:
-        sp = tl.where(u0 > 20.0, u0, tl.extra.libdevice.log1p(tl.exp(tl.minimum(u0, 20.0))))
-        dzv = -dgv * A[None, :] * tl.where(u0 > 20.0, 1.0, tl.sigmoid(u0))
+        sp = tl.maximum(u0, 0.0) + tl.log(1.0 + tl.exp(-tl.abs(u0)))
+        dzv = -dgv * A[None, :] * tl.sigmoid(u0)
         dAv = -dgv * sp
     else:
         sg = tl.sigmoid(u0 * A[None, :])
