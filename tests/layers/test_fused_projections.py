@@ -16,7 +16,7 @@ from fla.utils import device
     lambda: ComplexKDA(hidden_size=128, head_dim=32, num_heads=4, mode="chunk"),
     # mixed conv activations (two launches) and a full-rank output gate
     lambda: ComplexKDA(hidden_size=128, head_dim=32, num_heads=4, mode="chunk", conv_silu="qv",
-                       output_gate="linear", beta_init_style="spread"),
+                       output_gate="linear", beta_init_style="spread", allow_neg_eigval=True),
 ])
 def test_fused_projections_match(make, varlen):
     torch.manual_seed(0)
