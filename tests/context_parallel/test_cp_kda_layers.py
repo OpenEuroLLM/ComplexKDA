@@ -18,7 +18,7 @@ from fla.ops.cp import build_cp_context
 
 
 def _worker(rank, world_size, layer_name, lengths, port):
-    os.environ.update(MASTER_ADDR="localhost", MASTER_PORT=str(port), RANK=str(rank),
+    os.environ.update(MASTER_ADDR="127.0.0.1", MASTER_PORT=str(port), RANK=str(rank),
                       WORLD_SIZE=str(world_size), LOCAL_RANK=str(rank))
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
     torch.cuda.set_device(rank)
