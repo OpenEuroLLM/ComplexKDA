@@ -23,6 +23,8 @@ import math
 import warnings
 from typing import TYPE_CHECKING
 
+import os
+
 import torch
 import torch.nn as nn
 from einops import rearrange
@@ -649,7 +651,9 @@ class ComplexKimiDeltaAttention(nn.Module):
         self.o_norm = FusedRMSNormGated(self.head_v_dim, activation="sigmoid", eps=norm_eps)
         self.o_proj = nn.Linear(self.value_dim, hidden_size, bias=False)
         # one GEMM for the input projections, fewest launches for the q/k/v convolutions
-        self.fuse_projections = True
+        # (opt-in, FLA_FUSE_PROJECTIONS=1: measured slower for KDA at 130M -- the fused
+        # conv's q/k/v views cost copies downstream)
+        self.fuse_projections = os.environ.get("FLA_FUSE_PROJECTIONS", "0") == "1"
 
     def forward(
         self,

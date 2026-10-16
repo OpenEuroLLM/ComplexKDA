@@ -11,6 +11,8 @@ import math
 import warnings
 from typing import TYPE_CHECKING
 
+import os
+
 import torch
 import torch.nn as nn
 from einops import rearrange
@@ -232,7 +234,9 @@ class GatedDeltaNet(nn.Module):
             self.o_norm = RMSNorm(self.head_v_dim, eps=norm_eps, dtype=torch.float32)
         self.o_proj = nn.Linear(self.value_dim, hidden_size, bias=False)
         # one GEMM for the input projections (with the fused q/k/v conv, no cache only)
-        self.fuse_projections = True
+        # (opt-in, FLA_FUSE_PROJECTIONS=1: measured slower for KDA at 130M -- the fused
+        # conv's q/k/v views cost copies downstream)
+        self.fuse_projections = os.environ.get("FLA_FUSE_PROJECTIONS", "0") == "1"
 
     def _use_fused_qkv_conv(
         self,
@@ -256,7 +260,7 @@ class GatedDeltaNet(nn.Module):
             return False
         if not (self.use_short_conv and last_state is None and not use_cache and cu_seqlens is None):
             return False
-        return self.fuse_projections and (
+        return (
             self.q_conv1d.backend == self.k_conv1d.backend == self.v_conv1d.backend and
             self.q_conv1d.activation == self.k_conv1d.activation == self.v_conv1d.activation and
             self.q_conv1d.kernel_size == self.k_conv1d.kernel_size == self.v_conv1d.kernel_size
@@ -292,12 +296,18 @@ class GatedDeltaNet(nn.Module):
         conv_state_q, conv_state_k, conv_state_v = None, None, None
         a_out = beta = g_out = None
         if self._use_fused_qkv_conv(last_state, use_cache, cu_seqlens, hidden_states.is_cuda):
-            # all input projections as one GEMM (weights concatenated at run time)
-            others = [self.a_proj, self.b_proj] + ([self.g_proj] if self.use_gate else [])
-            qkv, a_out, beta, *g_out = fused_linear_qkv(
-                hidden_states, [self.q_proj, self.k_proj, self.v_proj], others
-            )
-            g_out = g_out[0] if g_out else None
+            if self.fuse_projections:
+                # all input projections as one GEMM (weights concatenated at run time)
+                others = [self.a_proj, self.b_proj] + ([self.g_proj] if self.use_gate else [])
+                qkv, a_out, beta, *g_out = fused_linear_qkv(
+                    hidden_states, [self.q_proj, self.k_proj, self.v_proj], others
+                )
+                g_out = g_out[0] if g_out else None
+            else:
+                qkv = torch.cat(
+                    [self.q_proj(hidden_states), self.k_proj(hidden_states), self.v_proj(hidden_states)],
+                    dim=-1,
+                )
             qkv_weight = torch.cat(
                 [
                     self.q_conv1d.weight.squeeze(1),
