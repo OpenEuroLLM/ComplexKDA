@@ -358,17 +358,21 @@ def fused_linear_qkv(x: torch.Tensor, conv_linears, other_linears) -> tuple[torc
     input gradient is summed over two GEMMs instead of one per projection."""
     import torch.nn.functional as F
 
-    def cat(linears):
-        weight = torch.cat([m.weight for m in linears], dim=0)
-        bias = None
-        if any(m.bias is not None for m in linears):
-            bias = torch.cat([
-                m.bias if m.bias is not None else m.weight.new_zeros(m.out_features) for m in linears
-            ])
-        return weight, bias
+    def cat(linears, pad=0):
+        weights = [m.weight for m in linears]
+        biases = [m.bias if m.bias is not None else m.weight.new_zeros(m.out_features) for m in linears]
+        if pad:
+            weights.append(weights[0].new_zeros(pad, weights[0].shape[1]))
+            biases.append(weights[0].new_zeros(pad))
+        bias = torch.cat(biases) if any(m.bias is not None for m in linears) else None
+        return torch.cat(weights, dim=0), bias
 
     block = F.linear(x, *cat(conv_linears))
     if not other_linears:
         return (block,)
-    rest = F.linear(x, *cat(other_linears))
-    return (block, *torch.split(rest, [m.out_features for m in other_linears], dim=-1))
+    # The rest padded with zero rows to a multiple of 64 output features: an odd width
+    # (e.g. 128 + H + 128) puts its GEMMs on slow sm80 kernels (2x, mostly the backward).
+    sizes = [m.out_features for m in other_linears]
+    pad = -sum(sizes) % 64
+    rest = F.linear(x, *cat(other_linears, pad))
+    return (block, *torch.split(rest, sizes + [pad] if pad else sizes, dim=-1)[:len(sizes)])
