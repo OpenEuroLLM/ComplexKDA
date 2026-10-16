@@ -295,3 +295,61 @@ def update_layer_cache(module, past_key_values, **kwargs):
     if past_key_values is not None:
         return past_key_values.update(layer_idx=layer_idx, **kwargs)
     return None
+
+
+def fused_linear(x: torch.Tensor, linears) -> tuple[torch.Tensor, ...]:
+    """The outputs of several ``nn.Linear`` on the same input as ONE GEMM.
+
+    The weights (and biases) are concatenated at run time, so the parameters -- and
+    checkpoints -- stay those of the separate modules; the gradient flows back through
+    the concatenation. Small projections (gates, beta, low-rank downs) then stop costing
+    a kernel launch and a poorly shaped GEMM each.
+    """
+    import torch.nn.functional as F
+
+    weight = torch.cat([m.weight for m in linears], dim=0)
+    bias = None
+    if any(m.bias is not None for m in linears):
+        bias = torch.cat([
+            m.bias if m.bias is not None else m.weight.new_zeros(m.out_features) for m in linears
+        ])
+    y = F.linear(x, weight, bias)
+    return torch.split(y, [m.out_features for m in linears], dim=-1)
+
+
+def fused_short_convs(x: torch.Tensor, convs, cu_seqlens: torch.Tensor | None = None):
+    """Several ``ShortConvolution`` over consecutive channel blocks of ``x`` [B, T, sum D]
+    as ONE causal-conv launch (same kernel size and activation; no cache)."""
+    from fla.modules.conv.causal_conv1d import causal_conv1d
+
+    act = convs[0].activation
+    assert all(c.activation == act and c.kernel_size == convs[0].kernel_size for c in convs)
+    weight = torch.cat([c.weight for c in convs], dim=0).squeeze(1)
+    bias = None
+    if any(c.bias is not None for c in convs):
+        bias = torch.cat([
+            c.bias if c.bias is not None else c.weight.new_zeros(c.weight.shape[0]) for c in convs
+        ])
+    y, _ = causal_conv1d(
+        x=x.contiguous(), weight=weight, bias=bias, activation=act,
+        backend=convs[0].backend, cu_seqlens=cu_seqlens,
+    )
+    return torch.split(y, [c.weight.shape[0] for c in convs], dim=-1)
+
+
+def fused_linear_qkv(x: torch.Tensor, conv_linears, other_linears) -> tuple[torch.Tensor, ...]:
+    """``fused_linear`` over ``conv_linears + other_linears``, with the outputs of
+    ``conv_linears`` returned as ONE block (the input of ``fused_short_convs``)."""
+    import torch.nn.functional as F
+
+    linears = list(conv_linears) + list(other_linears)
+    weight = torch.cat([m.weight for m in linears], dim=0)
+    bias = None
+    if any(m.bias is not None for m in linears):
+        bias = torch.cat([
+            m.bias if m.bias is not None else m.weight.new_zeros(m.out_features) for m in linears
+        ])
+    y = F.linear(x, weight, bias)
+    block = sum(m.out_features for m in conv_linears)
+    rest = torch.split(y[..., block:], [m.out_features for m in other_linears], dim=-1)
+    return (y[..., :block], *rest)

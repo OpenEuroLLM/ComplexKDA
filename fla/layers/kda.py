@@ -15,7 +15,14 @@ import torch.nn as nn
 from einops import rearrange
 from torch.nn import functional as F
 
-from fla.layers.utils import get_layer_cache, repad_hidden_states, unpad_hidden_states, update_layer_cache
+from fla.layers.utils import (
+    fused_linear_qkv,
+    fused_short_convs,
+    get_layer_cache,
+    repad_hidden_states,
+    unpad_hidden_states,
+    update_layer_cache,
+)
 from fla.modules import FusedRMSNormGated, ShortConvolution
 from fla.ops.kda import chunk_kda, fused_recurrent_kda
 
@@ -193,6 +200,8 @@ class KimiDeltaAttention(nn.Module):
         )
         self.o_norm = FusedRMSNormGated(self.head_v_dim, activation="sigmoid", eps=norm_eps)
         self.o_proj = nn.Linear(self.value_dim, hidden_size, bias=False)
+        # one GEMM for the input projections, one launch for the q/k/v convolutions
+        self.fuse_projections = True
 
     def forward(
         self,
@@ -221,7 +230,18 @@ class KimiDeltaAttention(nn.Module):
         cu_seqlens = kwargs.get("cu_seqlens")
         hidden_states, indices, cu_seqlens = unpad_hidden_states(hidden_states, cu_seqlens, attention_mask, q_len)
 
-        if self.use_short_conv:
+        # Training / no cache: all input projections as one GEMM, the q/k/v short
+        # convolutions as one launch (same parameters; fuse_projections=False: per module).
+        fused = self.use_short_conv and self.fuse_projections and last_state is None and not use_cache
+        g_low = None
+        if fused:
+            conv_state_q = conv_state_k = conv_state_v = None
+            qkv, f_low, beta, g_low = fused_linear_qkv(
+                hidden_states, [self.q_proj, self.k_proj, self.v_proj], [self.f_proj[0], self.b_proj, self.g_proj[0]]
+            )
+            q, k, v = fused_short_convs(qkv, [self.q_conv1d, self.k_conv1d, self.v_conv1d], cu_seqlens)
+            g = self.f_proj[1](f_low)
+        elif self.use_short_conv:
             conv_state_q, conv_state_k, conv_state_v = None, None, None
             if last_state is not None:
                 conv_state_q, conv_state_k, conv_state_v = last_state["conv_state"]
@@ -248,8 +268,9 @@ class KimiDeltaAttention(nn.Module):
             k = F.silu(self.k_proj(hidden_states))
             v = F.silu(self.v_proj(hidden_states))
 
-        g = self.f_proj(hidden_states)
-        beta = self.b_proj(hidden_states)
+        if not fused:
+            g = self.f_proj(hidden_states)
+            beta = self.b_proj(hidden_states)
 
         q, k = (rearrange(x, "... (h d) -> ... h d", d=self.head_k_dim) for x in (q, k))
         # g and v are at value-head dimension (HV); q/k are at qk-head dimension (H).
@@ -313,7 +334,8 @@ class KimiDeltaAttention(nn.Module):
             o = exclusive_self_attention(
                 o.reshape(-1, *o.shape[-2:]), v.reshape(-1, *v.shape[-2:])
             ).view_as(o)
-        o = self.o_norm(o, rearrange(self.g_proj(hidden_states), "... (h d) -> ... h d", d=self.head_v_dim))
+        gate = self.g_proj[1](g_low) if g_low is not None else self.g_proj(hidden_states)
+        o = self.o_norm(o, rearrange(gate, "... (h d) -> ... h d", d=self.head_v_dim))
         o = rearrange(o, "b t h d -> b t (h d)")
         o = self.o_proj(o)
         o = repad_hidden_states(o, indices, batch_size, q_len)
