@@ -13,8 +13,8 @@ Eager, that is 5-10 fp32 passes over [B, T, H, K] forward and as many backward -
 that made Complex KDA ~3 ms per layer slower than KDA, whose gate FLA computes inside its
 kernels, and that Triadic KDA pays as well. Here the forward reads z once and writes g and the sign; the
 backward recomputes the forward from z and writes dz plus per-row-block partial sums for
-dt_bias and A_log (reduced in torch). tanh is libdevice's accurate one: the sign is decided
-near u = 0.
+dt_bias and A_log (reduced in torch). tanh is computed from exp
+with the sign taken from its argument, so the sign is exact near u = 0.
 """
 
 import math
@@ -22,7 +22,17 @@ import math
 import torch
 import triton
 import triton.language as tl
-import triton.language.extra.libdevice  # noqa: F401  (tl.extra.libdevice: also resolvable when Inductor re-emits the kernels)
+
+
+@triton.jit
+def _tanh(x):
+    """tanh from exp: libdevice's is not reachable on every Triton (the MN5 image's returns
+    None through tl.extra, and a module alias breaks under torch.compile). The sign comes
+    from x itself (exact); small |x| uses the series, where 1 - exp(-2|x|) would cancel."""
+    ax = tl.abs(x)
+    e = tl.exp(-2.0 * ax)
+    t = tl.where(ax < 1e-3, ax - ax * ax * ax / 3.0, (1.0 - e) / (1.0 + e))
+    return tl.where(x < 0, -t, t)
 
 
 @triton.jit
@@ -42,7 +52,7 @@ def _signed_gate_fwd_kernel(z, dt_bias, A_log, g, sign, N, C, K: tl.constexpr, S
     if HAS_A:
         A = tl.exp(tl.load(A_log + cols // K, mask=cm, other=0.0).to(tl.float32))
     if MODE == 0:  # signed: sign(a), log(eps + (1 - eps)|a|), a = tanh(s A u)
-        a = tl.extra.libdevice.tanh(SCALE * (u * A[None, :]))
+        a = _tanh(SCALE * (u * A[None, :]))
         tl.store(g + off, tl.log(EPS + (1.0 - EPS) * tl.abs(a)), mask=m)
         tl.store(sign + off, tl.where(a < 0, -1, 1).to(tl.int8), mask=m)
     elif MODE == 1:  # softplus: -A softplus(u), the overflow-free form
@@ -71,7 +81,7 @@ def _signed_gate_bwd_kernel(z, dt_bias, A_log, dg, dz, ddt_part, dA_part, N, C,
         A = tl.exp(tl.load(A_log + cols // K, mask=cm, other=0.0).to(tl.float32))
     dgv = tl.load(dg + off, mask=m, other=0.0).to(tl.float32)
     if MODE == 0:
-        a = tl.extra.libdevice.tanh(SCALE * (u0 * A[None, :]))
+        a = _tanh(SCALE * (u0 * A[None, :]))
         # d|a|/da = sign(a) with 0 at a = 0 (torch's abs backward)
         sgn = tl.where(a > 0, 1.0, tl.where(a < 0, -1.0, 0.0))
         # du: d/d(A u0); dz = du * A, dA = du * u0
