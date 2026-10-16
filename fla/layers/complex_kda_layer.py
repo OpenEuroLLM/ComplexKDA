@@ -78,6 +78,11 @@ def compute_gate(gate, z, A_log=None, dt_bias=None, lower_bound=-5.0):
     if gate not in GATES:
         raise ValueError(f"gate must be one of {GATES}, got {gate!r}")
     if gate.startswith("signed_"):
+        if z.is_cuda and HAS_TRITON:
+            # one Triton kernel each way instead of ~10 eager fp32 passes over [B, T, H, K]
+            from fla.ops.kda.signed_gate import fused_signed_gate
+
+            return fused_signed_gate(z, A_log, dt_bias, lower_bound, activation=gate[len("signed_") :])
         return signed_gate(z, A_log, dt_bias, lower_bound, activation=gate[len("signed_") :])
     u = z.float()
     if dt_bias is not None:
