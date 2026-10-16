@@ -349,18 +349,26 @@ def fused_short_convs(x: torch.Tensor, convs, cu_seqlens: torch.Tensor | None = 
 
 
 def fused_linear_qkv(x: torch.Tensor, conv_linears, other_linears) -> tuple[torch.Tensor, ...]:
-    """``fused_linear`` over ``conv_linears + other_linears``, with the outputs of
-    ``conv_linears`` returned as ONE block (the input of ``fused_short_convs``)."""
+    """The outputs of ``conv_linears`` as ONE contiguous block (the input of
+    ``fused_short_convs``) and those of ``other_linears``, from two GEMMs.
+
+    Two GEMMs rather than one: slicing a single output into the conv block and the rest
+    costs a copy of the block for the conv and, in the backward, a zero-filled full-size
+    gradient per slice plus their sum -- more than the GEMM launch it saves. Either way the
+    input gradient is summed over two GEMMs instead of one per projection."""
     import torch.nn.functional as F
 
-    linears = list(conv_linears) + list(other_linears)
-    weight = torch.cat([m.weight for m in linears], dim=0)
-    bias = None
-    if any(m.bias is not None for m in linears):
-        bias = torch.cat([
-            m.bias if m.bias is not None else m.weight.new_zeros(m.out_features) for m in linears
-        ])
-    y = F.linear(x, weight, bias)
-    block = sum(m.out_features for m in conv_linears)
-    rest = torch.split(y[..., block:], [m.out_features for m in other_linears], dim=-1)
-    return (y[..., :block], *rest)
+    def cat(linears):
+        weight = torch.cat([m.weight for m in linears], dim=0)
+        bias = None
+        if any(m.bias is not None for m in linears):
+            bias = torch.cat([
+                m.bias if m.bias is not None else m.weight.new_zeros(m.out_features) for m in linears
+            ])
+        return weight, bias
+
+    block = F.linear(x, *cat(conv_linears))
+    if not other_linears:
+        return (block,)
+    rest = F.linear(x, *cat(other_linears))
+    return (block, *torch.split(rest, [m.out_features for m in other_linears], dim=-1))
