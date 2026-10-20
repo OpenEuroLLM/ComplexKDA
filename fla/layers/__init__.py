@@ -22,6 +22,7 @@ from .hgrn import HGRNAttention
 from .hgrn2 import HGRN2Attention
 from .kda import KimiDeltaAttention
 from .complex_kda_layer import ComplexKimiDeltaAttention
+from .kronlstm import KronLSTM
 from .lightnet import LightNetAttention
 from .linear_attn import LinearAttention
 from .log_linear_mamba2 import LogLinearMamba2
@@ -45,6 +46,7 @@ from .wall_attn import WallAttention
 from .yoco import YOCOCrossAttention, YOCOGatedRetention, YOCOSharedKVBuilder
 
 __all__ = [
+    'KronLSTM',
     'ABCAttention',
     'Attention',
     'BasedLinearAttention',
