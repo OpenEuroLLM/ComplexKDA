@@ -515,19 +515,44 @@ def test_layer_signed_gate_init_is_complex_kdas():
 
 
 def test_layer_neg_eigval_init_bias():
-    """With the bias, s * beta and s * c (s = 2) start at mean ~0.5 and mostly in [0, 1], as the s = 1
-    layer's beta and c do; the bias is a learnt, weight-decay-free parameter."""
+    """With the bias, s * beta (s = 2) starts at mean ~0.5 and mostly in [0, 1], as the s = 1 layer's beta does;
+    the bias is a learnt, weight-decay-free parameter, on the erase gate only."""
     from fla.layers import KronLSTM
     torch.manual_seed(0)
     layer = KronLSTM(hidden_size=768, k_head_dim=128, v_head_dim=128, num_k_heads=6, num_v_heads=6,
                      gate='signed_sigmoid2', allow_neg_eigval=True, neg_eigval_init_bias=True)
     x = F.rms_norm(torch.randn(4096, 768), (768,))
     with torch.no_grad():
-        for proj in (layer.b_proj, layer.c_proj):
-            eff = 2 * proj(x).sigmoid()
-            assert abs(eff.mean().item() - 0.5) < 0.05 and (eff <= 1).float().mean() > 0.95
-            assert proj.bias._no_weight_decay
-    # off, or without the extended range: no bias (the earlier layers' parameters)
+        eff = 2 * layer.b_proj(x).sigmoid()
+    assert abs(eff.mean().item() - 0.5) < 0.05 and (eff <= 1).float().mean() > 0.95
+    assert layer.b_proj.bias._no_weight_decay and layer.c_proj.bias is None
     plain = KronLSTM(hidden_size=768, k_head_dim=128, v_head_dim=128, num_k_heads=6, num_v_heads=6,
                      neg_eigval_init_bias=True)
-    assert plain.b_proj.bias is None and plain.c_proj.bias is None
+    assert plain.b_proj.bias is None
+
+
+def test_layer_unit_write():
+    """unit_write: under s = 2 the op gets c / 2, so the write s * c / 2 = c stays in [0, 1] by construction;
+    otherwise the layers are identical."""
+    import fla.layers.kronlstm as mod
+    from fla.layers import KronLSTM
+    torch.manual_seed(0)
+    kw = dict(hidden_size=128, k_head_dim=32, v_head_dim=32, num_k_heads=4, num_v_heads=4, allow_neg_eigval=True)
+    unit = KronLSTM(unit_write=True, **kw).to(device)
+    full = KronLSTM(**kw).to(device)
+    full.load_state_dict(unit.state_dict())
+    h = torch.randn(1, 96, 128, device=device)
+    calls, orig = [], mod.chunk_kronlstm
+
+    def spy(**a):
+        calls.append(a['target_gate'].detach().clone())
+        return orig(**a)
+    mod.chunk_kronlstm = spy
+    try:
+        unit(h)
+        full(h)
+    finally:
+        mod.chunk_kronlstm = orig
+    assert torch.allclose(calls[0] * 2, calls[1]) and calls[0].max() <= 0.5
+    # no effect without the extended range
+    assert not KronLSTM(unit_write=True, **{**kw, 'allow_neg_eigval': False}).unit_write

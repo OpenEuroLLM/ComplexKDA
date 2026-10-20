@@ -113,10 +113,14 @@ class KronLSTM(nn.Module):
         lower_bound (float, Optional):
             log of the signed gates' magnitude floor. Default: -5.
         neg_eigval_init_bias (bool, Optional):
-            Under `allow_neg_eigval`, give the erase and the target gate a bias initialised to -ln 3, so that
-            `s beta` and `s c` (s = 2) start at mean 0.5 and mostly in [0, 1] -- as the s = 1 layer starts --
-            while the full range stays reachable. `s` doubles the write as well as the erase in the decoupled
-            rule, hence both gates. Default: `False`.
+            Under `allow_neg_eigval`, give the erase gate a bias initialised to -ln 3, so that `s beta` (s = 2)
+            starts at mean 0.5 and mostly in [0, 1] -- as the s = 1 layer starts -- while the full [0, 2] stays
+            reachable. Default: `False`.
+        unit_write (bool, Optional):
+            Keep the write in its unit range under `allow_neg_eigval`: the op's `s` scales the write cap as well
+            as the erase (`u = s c ||v||^2 / ||v||^2 - s beta y` in the decoupled rule), so the write would be
+            `s c` in [0, 2]; the layer hands the op `c / s` instead, which makes the write `c` in [0, 1] by
+            construction while the erase keeps `s beta` in [0, 2]. Default: `False` (the paper's rule).
         use_output_gate (bool, Optional):
             Whether to use the sigmoid-gated output norm.
             Its gate starts at `sigmoid(3)` for every token: bias 3 and zero weights. Default: `True`.
@@ -146,6 +150,7 @@ class KronLSTM(nn.Module):
         gate: str = 'softplus',
         lower_bound: float = -5.0,
         neg_eigval_init_bias: bool = False,
+        unit_write: bool = False,
         use_output_gate: bool = True,
         layer_idx: int | None = None,
         norm_eps: float = 1e-5,
@@ -194,6 +199,7 @@ class KronLSTM(nn.Module):
         self.allow_neg_eigval = allow_neg_eigval and use_beta
         self.use_target_gate = use_target_gate
         self.neg_eigval_init_bias = neg_eigval_init_bias and self.allow_neg_eigval
+        self.unit_write = unit_write and self.allow_neg_eigval and use_target_gate
         self.decouple_erase = decouple_erase
         self.decay_gate = decay_gate
         self.gate = gate
@@ -219,7 +225,7 @@ class KronLSTM(nn.Module):
 
         # the target gate, per head; after its sigmoid the target is a bounded fraction of ||v||^2
         if use_target_gate:
-            self.c_proj = nn.Linear(hidden_size, self.num_heads, bias=self.neg_eigval_init_bias)
+            self.c_proj = nn.Linear(hidden_size, self.num_heads, bias=False)
 
         # one decay channel per (head, key dimension) for 'vector', one per head for 'scalar'
         self.gate_dim = self.key_dim if decay_gate == 'vector' else self.num_heads
@@ -286,9 +292,7 @@ class KronLSTM(nn.Module):
     def _reset_gates(self) -> None:
         if self.neg_eigval_init_bias:
             # sigmoid(-ln 3) = 1/4: s * sigmoid starts at 1/2, the s = 1 layer's sigmoid(0)
-            for proj in (getattr(self, 'b_proj', None), getattr(self, 'c_proj', None)):
-                if proj is not None:
-                    nn.init.constant_(proj.bias, -math.log(3.0))
+            nn.init.constant_(self.b_proj.bias, -math.log(3.0))
         if self.use_output_gate:
             nn.init.constant_(self.g_proj.bias, OUT_GATE_BIAS_INIT)
             # zero weights: the gate is exactly sigmoid(bias) for every token at initialisation
@@ -385,6 +389,9 @@ class KronLSTM(nn.Module):
         # the target gate's pre-activation in fp32 as well:
         # bf16's 8-bit mantissa is ~0.4% on the pre-activation itself
         target_gate = self.c_proj(hidden_states).float().sigmoid() if self.use_target_gate else None
+        if self.unit_write:
+            # the op scales the write cap by s = 2 too: hand it c / 2, so the write is c in [0, 1]
+            target_gate = target_gate * 0.5
 
         recurrent_state = last_state['recurrent_state'] if last_state is not None else None
         # as in fla/layers/gated_deltanet.py: with gradients enabled always the chunk kernels,
