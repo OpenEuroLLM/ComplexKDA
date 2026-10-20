@@ -494,3 +494,21 @@ def test_layer_signed_gate_runs_and_packs():
     y_packed = layer(h, cu_seqlens=torch.tensor(cu, dtype=torch.int32, device=device))[0]
     y_sep = torch.cat([layer(h[:, s:e])[0] for s, e in zip(cu[:-1], cu[1:])], 1)
     assert_close('y', y_sep, y_packed, 1e-4)
+
+
+def test_layer_signed_gate_init_is_complex_kdas():
+    """The signed forget gate starts as Complex KDA's does: A = 1, f = +exp(-dt) (no channel saturated),
+    and a live gradient into the gate's pre-activation on every channel."""
+    from fla.layers import KronLSTM
+    from fla.layers.complex_kda_layer import signed_gate
+    torch.manual_seed(0)
+    layer = KronLSTM(hidden_size=256, k_head_dim=64, v_head_dim=64, num_k_heads=4, num_v_heads=4,
+                     gate='signed_sigmoid2', allow_neg_eigval=True)
+    assert torch.equal(layer.A_log, torch.zeros_like(layer.A_log))
+    z = torch.zeros(1, 1, 4, 64, requires_grad=True)
+    sign, g = signed_gate(z, layer.A_log, layer.dt_bias, layer.lower_bound)
+    assert (sign > 0).all()
+    f = g.exp()
+    assert f.min() > 0.85 and f.max() < 0.9995  # exp(-dt), dt in [1e-3, 1e-1]
+    g.sum().backward()
+    assert (z.grad.abs() > 1e-5).all()

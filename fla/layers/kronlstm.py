@@ -258,10 +258,15 @@ class KronLSTM(nn.Module):
         # A_log ~ log U(0, 16) per head; dt_bias = inverse softplus of logU(1e-3, 1e-1), floored at 1e-4.
         # Nothing chains on what `nn.init` returns: transformers 4 swaps these functions for ones returning None
         # while `from_pretrained` builds the model
-        # the signed gates take Complex KDA's init: A_log ~ log U(1, 16), and dt_bias inverting the gate's own
-        # forward so that f = +exp(-dt) at step 0 (`fla.layers.complex_kda_layer.gate_init`)
-        nn.init.uniform_(self.A_log, 0 if self.gate == 'softplus' else 1, 16, generator=generator)
-        self.A_log.log_()
+        # the signed gates take Complex KDA's init (its bounded gates, `safe_gate_ok`): A_log = 0, and dt_bias
+        # inverting the gate's own forward so that f = +exp(-dt) at step 0 (`complex_kda_layer.gate_init`).
+        # A multiplies the pre-activation INSIDE the tanh there, so softplus's log U(0, 16) would saturate it:
+        # |f| = 1 with no gradient on most channels (the first extended-gate screen ran so, 2026-10-20)
+        if self.gate == 'softplus':
+            nn.init.uniform_(self.A_log, 0, 16, generator=generator)
+            self.A_log.log_()
+        else:
+            nn.init.zeros_(self.A_log)
         nn.init.uniform_(self.dt_bias, generator=generator)
         dt = torch.exp(self.dt_bias * (math.log(0.1) - math.log(0.001)) + math.log(0.001)).clamp(min=1e-4)
         if self.gate == 'softplus':
