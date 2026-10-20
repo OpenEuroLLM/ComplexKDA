@@ -45,4 +45,8 @@ def ungauge_final_state(ht: torch.Tensor | None, p: torch.Tensor,
     """`Diag(P_T) S'_T` for the `[N, H, K, V]` state."""
     if ht is None:
         return None
-    return gauge_state(ht, gauge_last(p, cu_seqlens), state_v_first=False)
+    p_last = gauge_last(p, cu_seqlens)
+    if cu_seqlens is not None:
+        # an empty sequence has P_T = +1; `gauge_last` would read the previous sequence's last token
+        p_last = torch.where((cu_seqlens[1:] > cu_seqlens[:-1]).view(-1, 1, 1), p_last, torch.ones_like(p_last))
+    return gauge_state(ht, p_last, state_v_first=False)

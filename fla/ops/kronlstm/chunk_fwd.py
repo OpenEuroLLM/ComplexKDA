@@ -718,10 +718,11 @@ def chunk_kronlstm_fwd_intra(q, k, v, gc, beta, target_gate, scale, beta_max_sca
 
 def chunk_kronlstm_fwd(q, k, v, beta, g, scale, initial_state, output_final_state, chunk_size,
                        beta_max_scaler, target_gate, decouple_erase, for_backward=False,
-                       cu_seqlens=None, chunk_indices=None, chunk_offsets=None):
+                       cu_seqlens=None, chunk_indices=None, chunk_offsets=None, cp_context=None):
     """The forward on tensors padded to a multiple of `chunk_size`, or packed by `cu_seqlens`.
 
     With `for_backward`, it also returns the intermediates `chunk_kronlstm_bwd` consumes.
+    With `cp_context`, the scan starts from the previous rank's state and hands its own on (`cp.py`).
     """
     C = chunk_size
     if cu_seqlens is not None:
@@ -735,9 +736,16 @@ def chunk_kronlstm_fwd(q, k, v, beta, g, scale, initial_state, output_final_stat
     A_qk, A_kk, Tinv, q_up, k_up, k_tail, bs, pay = chunk_kronlstm_fwd_intra(
         q, k, v, gc, beta, target_gate, scale, beta_max_scaler, decouple_erase, C, need_q_up=for_backward,
         cu_seqlens=cu_seqlens, chunk_indices=chunk_indices)
+    if cp_context is not None:
+        from fla.ops.kronlstm.cp import cp_initial_state, cp_send_final_state
+        initial_state = cp_initial_state(cp_context, len(cu_seqlens) - 1, k.shape[2], k.shape[3], v.shape[3], k.device)
+        output_final_state = True
     h, v_new, u, ht = chunk_kronlstm_fwd_h(k_up, k_tail, v, gc, Tinv, bs, pay, initial_state, output_final_state, C,
                                            cu_seqlens=cu_seqlens, chunk_indices=chunk_indices,
                                            chunk_offsets=chunk_offsets)
+    if cp_context is not None:
+        cp_send_final_state(cp_context, ht)
+        ht = None
     # the read-out Gram carries `scale`; `fwd_o_gk` masks it at load and scales the inter term
     o = chunk_gla_fwd_o_gk(q=q, v=v_new, g=gc, A=A_qk, h=h, scale=scale, chunk_size=C, cu_seqlens=cu_seqlens,
                            chunk_indices=chunk_indices)

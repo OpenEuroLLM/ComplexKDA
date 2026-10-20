@@ -315,6 +315,14 @@ class KronLSTM(nn.Module):
         # explicit `cu_seqlens` take precedence and leave the input as it is
         cu_seqlens = kwargs.get('cu_seqlens')
         hidden_states, indices, cu_seqlens = unpad_hidden_states(hidden_states, cu_seqlens, attention_mask, q_len)
+        # context parallelism (fla.ops.cp): a B = 1 rank-local token stream; the convolution and the op take the
+        # rank-local cu_seqlens and the cross-rank exchange from the context
+        cp_context = kwargs.get('cp_context')
+        cp_kw = {'cp_context': cp_context} if cp_context is not None else {}
+        if cp_context is not None:
+            if use_cache or past_key_values is not None:
+                raise ValueError("Context parallelism is for training: no cache.")
+            cu_seqlens = None
 
         qkv = self.qkv_proj(hidden_states)
         conv_state = None
@@ -322,7 +330,7 @@ class KronLSTM(nn.Module):
             if last_state is not None:
                 conv_state = last_state['conv_state']
             qkv, conv_state = self.qkv_conv1d(x=qkv, cache=conv_state, output_final_state=use_cache,
-                                              cu_seqlens=cu_seqlens)
+                                              cu_seqlens=cu_seqlens, **cp_kw)
         else:
             qkv = F.silu(qkv)
         q, k, v = qkv.split((self.key_dim, self.key_dim, self.value_dim), dim=-1)
@@ -365,7 +373,7 @@ class KronLSTM(nn.Module):
         # as in fla/layers/gated_deltanet.py: with gradients enabled always the chunk kernels,
         # since the token-by-token kernel has no backward;
         # otherwise short inference inputs (decoding steps, short prompts) take the latter
-        if torch.is_grad_enabled():
+        if torch.is_grad_enabled() or cp_context is not None:
             mode = 'chunk'
         elif q_len <= 64 and not self.training:
             mode = 'fused_recurrent'
@@ -382,6 +390,7 @@ class KronLSTM(nn.Module):
             decouple_erase=self.decouple_erase,
             cu_seqlens=cu_seqlens,
             sign=sign,
+            **cp_kw,
         )
 
         update_layer_cache(

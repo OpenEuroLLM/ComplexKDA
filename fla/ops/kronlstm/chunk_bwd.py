@@ -719,7 +719,8 @@ def chunk_kronlstm_bwd_local(q, k, v, v_new, do, dv_new, gc, beta, target_gate, 
 
 def chunk_kronlstm_bwd(q, k, v, beta, target_gate, gc, A_kk, A_qk, Tinv, bs, u, h, v_new,
                        q_up, k_up, k_tail, has_h0, do, dht, scale, beta_max_scaler, decouple_erase,
-                       chunk_size, need_dg=True, cu_seqlens=None, chunk_indices=None, chunk_offsets=None):
+                       chunk_size, need_dg=True, cu_seqlens=None, chunk_indices=None, chunk_offsets=None,
+                       cp_context=None):
     """The backward on tensors padded to a multiple of `chunk_size`, or packed by `cu_seqlens`, with `g` at rank 4.
 
     Returns `(dq, dk, dv, dbeta, dg, dct, dh0)`, each in its input's dtype.
@@ -734,9 +735,17 @@ def chunk_kronlstm_bwd(q, k, v, beta, target_gate, gc, A_kk, A_qk, Tinv, bs, u, 
             chunk_offsets = prepare_chunk_offsets(cu_seqlens, C)
     dA_qk, dv_intra = chunk_kda_bwd_dAv(q=q, k=k, v=v_new, do=do, A=A_qk, scale=scale, chunk_size=C,
                                         cu_seqlens=cu_seqlens, chunk_indices=chunk_indices)
+    if cp_context is not None:
+        # the reverse scan in reverse rank order (cp.py): dht from the next rank, dh0 to the previous
+        from fla.ops.kronlstm.cp import cp_final_state_grad, cp_send_initial_state_grad
+        dht = cp_final_state_grad(cp_context, len(cu_seqlens) - 1, k.shape[2], k.shape[3], v.shape[3], k.device)
+        has_h0 = True
     dh, dh0, dv_new, dr = chunk_kronlstm_bwd_dhu(q_up, k_up, k_tail, v, gc, Tinv, bs, do, dv_intra,
                                                  dht, has_h0, scale, C, cu_seqlens=cu_seqlens,
                                                  chunk_indices=chunk_indices, chunk_offsets=chunk_offsets)
+    if cp_context is not None:
+        cp_send_initial_state_grad(cp_context, dh0)
+        dh0 = None
     dA_kk, A_vv = chunk_kronlstm_bwd_dAkk(v, dr, u, bs, C, cu_seqlens=cu_seqlens, chunk_indices=chunk_indices)
     dq_g, dk_g, dgc_g = chunk_kronlstm_bwd_intra(q, k, gc, dA_qk, dA_kk, C, cu_seqlens=cu_seqlens,
                                                  chunk_indices=chunk_indices)

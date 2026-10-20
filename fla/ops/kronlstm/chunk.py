@@ -27,18 +27,21 @@ class ChunkKronLSTMFunction(torch.autograd.Function):
     @input_guard
     @autocast_custom_fwd
     def forward(ctx, q, k, v, beta, g, scale, initial_state, output_final_state, chunk_size,
-                beta_max_scaler, target_gate, decouple_erase, need_dg, cu_seqlens, chunk_indices, chunk_offsets):
+                beta_max_scaler, target_gate, decouple_erase, need_dg, cu_seqlens, chunk_indices, chunk_offsets,
+                cp_context=None):
         # grad mode is off inside Function.forward, so ask the ctx, not the tensors
         need_grad = any(ctx.needs_input_grad)
         out = chunk_kronlstm_fwd(q, k, v, beta, g, scale, initial_state, output_final_state,
                                  chunk_size, beta_max_scaler, target_gate, decouple_erase, for_backward=need_grad,
-                                 cu_seqlens=cu_seqlens, chunk_indices=chunk_indices, chunk_offsets=chunk_offsets)
+                                 cu_seqlens=cu_seqlens, chunk_indices=chunk_indices, chunk_offsets=chunk_offsets,
+                                 cp_context=cp_context)
         if not need_grad:
             return out
         o, ht, (gc, A_kk, A_qk, Tinv, bs, u, h, v_new, q_up, k_up, k_tail) = out
         ctx.save_for_backward(q, k, v, beta, target_gate, gc, A_kk, A_qk, Tinv, bs, u, h, v_new,
                               q_up, k_up, k_tail, cu_seqlens, chunk_indices, chunk_offsets)
         ctx.has_h0 = initial_state is not None
+        ctx.cp_context = cp_context
         ctx.scale, ctx.chunk_size = scale, chunk_size
         ctx.beta_max_scaler, ctx.decouple_erase, ctx.need_dg = beta_max_scaler, decouple_erase, need_dg
         return o, ht
@@ -53,8 +56,9 @@ class ChunkKronLSTMFunction(torch.autograd.Function):
             q, k, v, beta, target_gate, gc, A_kk, A_qk, Tinv, bs, u, h, v_new, q_up, k_up, k_tail,
             ctx.has_h0, do.contiguous(), None if dht is None else dht.contiguous(), ctx.scale,
             ctx.beta_max_scaler, ctx.decouple_erase, ctx.chunk_size, need_dg=ctx.need_dg,
-            cu_seqlens=cu_seqlens, chunk_indices=chunk_indices, chunk_offsets=chunk_offsets)
-        return dq, dk, dv, dbeta, dg, None, dh0, None, None, None, dct, None, None, None, None, None
+            cu_seqlens=cu_seqlens, chunk_indices=chunk_indices, chunk_offsets=chunk_offsets,
+            cp_context=ctx.cp_context)
+        return dq, dk, dv, dbeta, dg, None, dh0, None, None, None, dct, None, None, None, None, None, None
 
 
 @torch.compiler.disable
@@ -72,6 +76,7 @@ def chunk_kronlstm(
     decouple_erase: bool = True,
     cu_seqlens: torch.LongTensor | None = None,
     sign: torch.Tensor | None = None,
+    cp_context=None,
 ):
     """Chunkwise KronLSTM, forward and backward in Triton.
 
@@ -120,6 +125,11 @@ def chunk_kronlstm(
             `f = sign * exp(g)` in `[-1, 1]`; `g` then carries `log|f|`. Applied as a gauge on q and k
             (`gauge.py`), reset at every sequence start; the final state is returned in the true frame.
             Default: `None`.
+        cp_context (FLACPContext, Optional):
+            context parallelism (`fla.ops.cp.build_cp_context`): the inputs are this rank's contiguous piece
+            `[1, T_local, ...]` of the token stream, the rank-local `cu_seqlens` come from the context,
+            and the recurrent state is relayed between ranks around the scans (`cp.py`).
+            No `initial_state` and no final state. Default: `None`.
 
     Returns:
         o (torch.Tensor):
@@ -130,6 +140,12 @@ def chunk_kronlstm(
     """
     if decouple_erase and target_gate is None:
         raise ValueError("`decouple_erase=True` requires `target_gate`.")
+    if cp_context is not None:
+        if initial_state is not None or output_final_state:
+            raise ValueError("Context parallelism takes no `initial_state` and returns no final state.")
+        if cu_seqlens is not None:
+            raise ValueError("With `cp_context`, the rank-local `cu_seqlens` come from the context.")
+        cu_seqlens = cp_context.cu_seqlens
     g_rank = _gate_rank(g, k.shape[-1])
     B, T, H, K = k.shape
     V = v.shape[-1]
@@ -159,7 +175,7 @@ def chunk_kronlstm(
         scale = K ** -0.5
     p = None
     if sign is not None:
-        p = sign_parity(sign, K, cu_seqlens)
+        p = sign_parity(sign, K, cu_seqlens, cp_context=cp_context)
         q, k = gauge_qk(q, k, p)
     beta_max_scaler = 2.0 if allow_neg_eigval else 1.0
     chunk_size = 64
@@ -192,7 +208,8 @@ def chunk_kronlstm(
 
     o, ht = ChunkKronLSTMFunction.apply(q, k, v, beta, g, scale, initial_state,
                                         output_final_state, chunk_size, beta_max_scaler,
-                                        target_gate, decouple_erase, g_rank != 0, cu_seqlens, chunk_indices, chunk_offsets)
+                                        target_gate, decouple_erase, g_rank != 0, cu_seqlens, chunk_indices, chunk_offsets,
+                                        cp_context)
     if p is not None:
         ht = ungauge_final_state(ht, p, cu_seqlens)
     return o[:, :T], ht
