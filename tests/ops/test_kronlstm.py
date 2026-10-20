@@ -512,3 +512,22 @@ def test_layer_signed_gate_init_is_complex_kdas():
     assert f.min() > 0.85 and f.max() < 0.9995  # exp(-dt), dt in [1e-3, 1e-1]
     g.sum().backward()
     assert (z.grad.abs() > 1e-5).all()
+
+
+def test_layer_neg_eigval_init_bias():
+    """With the bias, s * beta and s * c (s = 2) start at mean ~0.5 and mostly in [0, 1], as the s = 1
+    layer's beta and c do; the bias is a learnt, weight-decay-free parameter."""
+    from fla.layers import KronLSTM
+    torch.manual_seed(0)
+    layer = KronLSTM(hidden_size=768, k_head_dim=128, v_head_dim=128, num_k_heads=6, num_v_heads=6,
+                     gate='signed_sigmoid2', allow_neg_eigval=True, neg_eigval_init_bias=True)
+    x = F.rms_norm(torch.randn(4096, 768), (768,))
+    with torch.no_grad():
+        for proj in (layer.b_proj, layer.c_proj):
+            eff = 2 * proj(x).sigmoid()
+            assert abs(eff.mean().item() - 0.5) < 0.05 and (eff <= 1).float().mean() > 0.95
+            assert proj.bias._no_weight_decay
+    # off, or without the extended range: no bias (the earlier layers' parameters)
+    plain = KronLSTM(hidden_size=768, k_head_dim=128, v_head_dim=128, num_k_heads=6, num_v_heads=6,
+                     neg_eigval_init_bias=True)
+    assert plain.b_proj.bias is None and plain.c_proj.bias is None

@@ -112,6 +112,11 @@ class KronLSTM(nn.Module):
             The signed gates need `decay_gate='vector'`. Default: `softplus`.
         lower_bound (float, Optional):
             log of the signed gates' magnitude floor. Default: -5.
+        neg_eigval_init_bias (bool, Optional):
+            Under `allow_neg_eigval`, give the erase and the target gate a bias initialised to -ln 3, so that
+            `s beta` and `s c` (s = 2) start at mean 0.5 and mostly in [0, 1] -- as the s = 1 layer starts --
+            while the full range stays reachable. `s` doubles the write as well as the erase in the decoupled
+            rule, hence both gates. Default: `False`.
         use_output_gate (bool, Optional):
             Whether to use the sigmoid-gated output norm.
             Its gate starts at `sigmoid(3)` for every token: bias 3 and zero weights. Default: `True`.
@@ -140,6 +145,7 @@ class KronLSTM(nn.Module):
         decay_gate: str = 'vector',
         gate: str = 'softplus',
         lower_bound: float = -5.0,
+        neg_eigval_init_bias: bool = False,
         use_output_gate: bool = True,
         layer_idx: int | None = None,
         norm_eps: float = 1e-5,
@@ -187,6 +193,7 @@ class KronLSTM(nn.Module):
         # with beta = 1 everywhere, s = 2 would put every step on the eigenvalue -1 edge
         self.allow_neg_eigval = allow_neg_eigval and use_beta
         self.use_target_gate = use_target_gate
+        self.neg_eigval_init_bias = neg_eigval_init_bias and self.allow_neg_eigval
         self.decouple_erase = decouple_erase
         self.decay_gate = decay_gate
         self.gate = gate
@@ -208,11 +215,11 @@ class KronLSTM(nn.Module):
         # the per-head erase gate, a plain sigmoid in [0, 1];
         # `allow_neg_eigval` opens the negative-eigenvalue range in the op
         if use_beta:
-            self.b_proj = nn.Linear(hidden_size, self.num_heads, bias=False)
+            self.b_proj = nn.Linear(hidden_size, self.num_heads, bias=self.neg_eigval_init_bias)
 
         # the target gate, per head; after its sigmoid the target is a bounded fraction of ||v||^2
         if use_target_gate:
-            self.c_proj = nn.Linear(hidden_size, self.num_heads, bias=False)
+            self.c_proj = nn.Linear(hidden_size, self.num_heads, bias=self.neg_eigval_init_bias)
 
         # one decay channel per (head, key dimension) for 'vector', one per head for 'scalar'
         self.gate_dim = self.key_dim if decay_gate == 'vector' else self.num_heads
@@ -277,6 +284,11 @@ class KronLSTM(nn.Module):
 
     @torch.no_grad()
     def _reset_gates(self) -> None:
+        if self.neg_eigval_init_bias:
+            # sigmoid(-ln 3) = 1/4: s * sigmoid starts at 1/2, the s = 1 layer's sigmoid(0)
+            for proj in (getattr(self, 'b_proj', None), getattr(self, 'c_proj', None)):
+                if proj is not None:
+                    nn.init.constant_(proj.bias, -math.log(3.0))
         if self.use_output_gate:
             nn.init.constant_(self.g_proj.bias, OUT_GATE_BIAS_INIT)
             # zero weights: the gate is exactly sigmoid(bias) for every token at initialisation
