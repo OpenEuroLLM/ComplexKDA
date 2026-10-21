@@ -143,6 +143,10 @@ class KronLSTM(nn.Module):
             `r = sigmoid(-b(x))` and the angle `phi = pi sigmoid(.)` per head, so `beta in [0, 2]` (s = 2, with the
             write kept in [0, 1] as `unit_write`); phi starts near 0, so beta starts at the s = 1 layer's
             sigmoid(b(x)). Default: `False`.
+        forget_offset (float, Optional):
+            A fixed extra decay per step on every channel, `log|f| - forget_offset`: shorter memory horizons,
+            `|f| <= exp(-forget_offset)`. 0.012 is the polar gate's init cap (cos(0.157)), without the angle.
+            Default: 0.
         signed_write (bool, Optional):
             Target (write) gate `c = 2 sigmoid(.) - 1 in [-1, 1]` (bias ln 3: mean 0.5 at init, the sigmoid gate's),
             so a write can agree with a sign-flipped memory; `|c| <= 1` keeps the memory bound. Default: `False`.
@@ -178,6 +182,7 @@ class KronLSTM(nn.Module):
         forget_angle: bool = False,
         erase_angle: bool = False,
         signed_write: bool = False,
+        forget_offset: float = 0.0,
         layer_idx: int | None = None,
         norm_eps: float = 1e-5,
         **kwargs,
@@ -208,6 +213,9 @@ class KronLSTM(nn.Module):
         if signed_write and not use_target_gate:
             raise ValueError("signed_write needs use_target_gate.")
         self.forget_angle, self.erase_angle, self.signed_write = forget_angle, erase_angle, signed_write
+        if not (forget_offset >= 0.0 and math.isfinite(forget_offset)):
+            raise ValueError(f"forget_offset must be finite and >= 0, got {forget_offset}")
+        self.forget_offset = float(forget_offset)
         if erase_angle:
             # beta in [0, 2] through the op's s = 2, the write kept at c
             allow_neg_eigval, unit_write = True, True
@@ -459,6 +467,9 @@ class KronLSTM(nn.Module):
                 g = g + cos.abs().clamp_min(math.exp(self.lower_bound)).log()
         else:
             g = -self.A_log.float().exp() * F.softplus(self.f_proj(hidden_states).float() + self.dt_bias)
+
+        if self.forget_offset:
+            g = g - self.forget_offset
 
         # the target gate's pre-activation in fp32 as well:
         # bf16's 8-bit mantissa is ~0.4% on the pre-activation itself

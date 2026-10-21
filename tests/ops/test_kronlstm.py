@@ -643,3 +643,48 @@ def test_chunk_negative_target_gate():
     ref = run_grads(naive_recurrent_kronlstm, x, torch.float64, 'vector', 'E')
     tri = run_grads(chunk_kronlstm, x, torch.float32, 'vector', 'E')
     assert_all_close(ref, tri, TOL[torch.float32])
+
+
+def test_layer_forget_offset():
+    """forget_offset subtracts a constant from the op's log-gate (KronLSTM) -- and equals the polar forget gate's
+    init (cos(0.157): offset -log cos(pi * 0.05)) without the angle."""
+    from fla.layers import KronLSTM
+    kw = dict(hidden_size=128, k_head_dim=32, v_head_dim=32, num_k_heads=4, num_v_heads=4)
+    off = -math.log(math.cos(math.pi * 0.05))
+    torch.manual_seed(0)
+    a = KronLSTM(forget_offset=off, **kw).to(device)
+    torch.manual_seed(0)
+    polar = KronLSTM(forget_angle=True, **kw).to(device)
+    torch.manual_seed(0)
+    plain = KronLSTM(**kw).to(device)
+    a.load_state_dict(plain.state_dict())
+    polar.load_state_dict({**polar.state_dict(), **plain.state_dict()})
+    h = torch.randn(1, 64, 128, device=device)
+    ga, gp, g0 = _spy_op(a, h)[0]['g'], _spy_op(polar, h)[0]['g'], _spy_op(plain, h)[0]['g']
+    assert torch.allclose(ga, g0 - off, atol=1e-6) and torch.allclose(ga, gp, atol=1e-5)
+
+
+def test_ckda_forget_offset():
+    """Complex KDA's forget_offset: the op's log|alpha| shifted by the offset (clamped at the lower bound)."""
+    import fla.layers.complex_kda_layer as mod
+    torch.manual_seed(0)
+    kw = dict(hidden_size=128, num_heads=4, head_dim=32)
+    a = mod.ComplexKimiDeltaAttention(forget_offset=0.012, **kw).to(device)
+    torch.manual_seed(0)
+    b = mod.ComplexKimiDeltaAttention(**kw).to(device)
+    b.load_state_dict(a.state_dict())
+    calls, orig = [], mod.chunk_kda
+
+    def spy(**k):
+        calls.append(k['g'].detach().clone())
+        return orig(**k)
+    mod.chunk_kda = spy
+    try:
+        h = torch.randn(1, 64, 128, device=device)
+        a(h)
+        b(h)
+    finally:
+        mod.chunk_kda = orig
+    assert torch.allclose(calls[0], (calls[1] - 0.012).clamp_min(a.lower_bound), atol=1e-6)
+    with pytest.raises(ValueError):
+        mod.ComplexKimiDeltaAttention(forget_offset=-1.0, **kw)

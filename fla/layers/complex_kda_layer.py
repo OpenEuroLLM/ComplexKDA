@@ -511,6 +511,7 @@ class ComplexKimiDeltaAttention(nn.Module):
         layer_idx: int = None,
         norm_eps: float = 1e-5,
         xsa: bool = False,
+        forget_offset: float = 0.0,
         **kwargs,
     ) -> ComplexKimiDeltaAttention:
         super().__init__()
@@ -542,6 +543,11 @@ class ComplexKimiDeltaAttention(nn.Module):
         self.backend = backend
         self.safe_gate = safe_gate_ok(gate)
         self.lower_bound = lower_bound
+        # a fixed extra decay per step on every channel, log|alpha| - forget_offset: shorter memory
+        # horizons (|alpha| <= exp(-forget_offset)); clamped at the lower bound the M=16 path assumes
+        if not (forget_offset >= 0.0 and math.isfinite(forget_offset)):
+            raise ValueError(f"forget_offset must be finite and >= 0, got {forget_offset}")
+        self.forget_offset = float(forget_offset)
         self.hidden_size = hidden_size
         self.expand_v = expand_v
 
@@ -751,6 +757,10 @@ class ComplexKimiDeltaAttention(nn.Module):
         v = rearrange(v, "... (h d) -> ... h d", d=self.head_v_dim)
 
         sign, g = compute_gate(self.gate, g, self.A_log, self.dt_bias, self.lower_bound)
+        if self.forget_offset:
+            g = g - self.forget_offset
+            if self.safe_gate:
+                g = g.clamp_min(self.lower_bound)
 
         # GVA: the gauge is per value head but q/k are shared across the group,
         # so q/k are expanded to HV before either path applies it. The kernel
