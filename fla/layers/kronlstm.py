@@ -42,6 +42,10 @@ FORGET_GATES = ('softplus', 'signed_sigmoid2', 'signed_tanh')
 # it is exempt from weight decay, which would pull the gate back towards half open
 OUT_GATE_BIAS_INIT = 3.0
 
+# the polar gates' angle at initialisation, theta = pi * sigmoid(bias): sigmoid = 0.05, theta = 0.157, cos = 0.988 --
+# off the flat top of the cosine, so the angle has a gradient, while the eigenvalue starts at ~its magnitude
+ANGLE_INIT_BIAS = math.log(0.05 / 0.95)
+
 
 @torch.compiler.disable
 def _eager(fn, *args, **kwargs):
@@ -128,6 +132,20 @@ class KronLSTM(nn.Module):
             `full`: one dense hidden -> value_dim projection; `lowrank`: hidden -> v_head_dim -> value_dim, as
             Complex KDA's low-rank output gate (its parameter count); the second factor starts at zero weights
             and bias 3, so the gate starts as the full one does. Default: `full`.
+        forget_angle (bool, Optional):
+            Polar forget gate: `f = m cos(theta)`, with the magnitude `m` the softplus gate (decay rates, `A_log`
+            spread: short and long memory) and the angle `theta = pi sigmoid(.)` from its own low-rank projection,
+            per key dimension. `f in [-m, m]`; theta starts near 0, so the gate starts as the softplus one; the
+            cosine is flat at 0 and pi, so a channel flips sign gradually. The sign is applied as the sign gauge.
+            Needs `gate='softplus'` and `decay_gate='vector'`. Default: `False`.
+        erase_angle (bool, Optional):
+            Polar erase gate on the kept eigenvalue `lambda = 1 - beta* ||a||^2 = r cos(phi)`: the magnitude
+            `r = sigmoid(-b(x))` and the angle `phi = pi sigmoid(.)` per head, so `beta in [0, 2]` (s = 2, with the
+            write kept in [0, 1] as `unit_write`); phi starts near 0, so beta starts at the s = 1 layer's
+            sigmoid(b(x)). Default: `False`.
+        signed_write (bool, Optional):
+            Target (write) gate `c = 2 sigmoid(.) - 1 in [-1, 1]` (bias ln 3: mean 0.5 at init, the sigmoid gate's),
+            so a write can agree with a sign-flipped memory; `|c| <= 1` keeps the memory bound. Default: `False`.
         layer_idx (int, Optional):
             The index of the layer, required when a cache is used. Default: `None`.
         norm_eps (float, Optional):
@@ -157,6 +175,9 @@ class KronLSTM(nn.Module):
         unit_write: bool = False,
         use_output_gate: bool = True,
         output_gate_rank: str = 'full',
+        forget_angle: bool = False,
+        erase_angle: bool = False,
+        signed_write: bool = False,
         layer_idx: int | None = None,
         norm_eps: float = 1e-5,
         **kwargs,
@@ -180,6 +201,16 @@ class KronLSTM(nn.Module):
             )
         if decouple_erase and not use_target_gate:
             raise ValueError("`decouple_erase=True` requires `use_target_gate=True`.")
+        if forget_angle and (gate != 'softplus' or decay_gate != 'vector'):
+            raise ValueError("forget_angle takes its magnitude from gate='softplus' with decay_gate='vector'.")
+        if erase_angle and not use_beta:
+            raise ValueError("erase_angle needs use_beta.")
+        if signed_write and not use_target_gate:
+            raise ValueError("signed_write needs use_target_gate.")
+        self.forget_angle, self.erase_angle, self.signed_write = forget_angle, erase_angle, signed_write
+        if erase_angle:
+            # beta in [0, 2] through the op's s = 2, the write kept at c
+            allow_neg_eigval, unit_write = True, True
         if gate not in FORGET_GATES:
             raise ValueError(f"gate=`{gate}` is not one of {FORGET_GATES}.")
         if gate != 'softplus' and decay_gate != 'vector':
@@ -230,7 +261,10 @@ class KronLSTM(nn.Module):
 
         # the target gate, per head; after its sigmoid the target is a bounded fraction of ||v||^2
         if use_target_gate:
-            self.c_proj = nn.Linear(hidden_size, self.num_heads, bias=False)
+            self.c_proj = nn.Linear(hidden_size, self.num_heads, bias=signed_write)
+        if erase_angle:
+            # the erase angle per head: zero weights and the angle bias, so phi starts equal on every token
+            self.b_angle_proj = nn.Linear(hidden_size, self.num_heads, bias=True)
 
         # one decay channel per (head, key dimension) for 'vector', one per head for 'scalar'
         self.gate_dim = self.key_dim if decay_gate == 'vector' else self.num_heads
@@ -239,6 +273,12 @@ class KronLSTM(nn.Module):
             nn.Linear(hidden_size, v_head_dim, bias=False),
             nn.Linear(v_head_dim, self.gate_dim, bias=False),
         )
+        if forget_angle:
+            # the forget angle per (head, key dimension), low rank as f_proj; zero last weights at init
+            self.f_angle_proj = nn.Sequential(
+                nn.Linear(hidden_size, v_head_dim, bias=False),
+                nn.Linear(v_head_dim, self.gate_dim, bias=True),
+            )
         # a per-head decay rate (A_log) and a per-channel softplus bias (dt_bias), as GDN-2 and KDA place them
         self.A_log = nn.Parameter(torch.empty(self.num_heads, dtype=torch.float32))
         self.dt_bias = nn.Parameter(torch.empty(self.gate_dim, dtype=torch.float32))
@@ -304,6 +344,14 @@ class KronLSTM(nn.Module):
 
     @torch.no_grad()
     def _reset_gates(self) -> None:
+        for proj in (getattr(self, 'f_angle_proj', None), getattr(self, 'b_angle_proj', None)):
+            if proj is not None:
+                last = proj[-1] if isinstance(proj, nn.Sequential) else proj
+                nn.init.zeros_(last.weight)
+                nn.init.constant_(last.bias, ANGLE_INIT_BIAS)
+        if self.signed_write:
+            # 2 sigmoid(ln 3) - 1 = 1/2: c starts at the sigmoid gate's mean
+            nn.init.constant_(self.c_proj.bias, math.log(3.0))
         if self.neg_eigval_init_bias:
             # sigmoid(-ln 3) = 1/4: s * sigmoid starts at 1/2, the s = 1 layer's sigmoid(0)
             nn.init.constant_(self.b_proj.bias, -math.log(3.0))
@@ -380,7 +428,12 @@ class KronLSTM(nn.Module):
         if self.normalize_v:
             v = F.normalize(v, dim=-1).to(v.dtype)
 
-        if self.use_beta:
+        if self.erase_angle:
+            # kept eigenvalue lambda = r cos(phi), beta* ||a||^2 = 1 - lambda in [0, 2]; the op's s = 2 takes beta / 2
+            z_b = self.b_proj(hidden_states).float()
+            phi = math.pi * self.b_angle_proj(hidden_states).float().sigmoid()
+            beta = (0.5 * (1.0 - torch.sigmoid(-z_b) * torch.cos(phi))).to(hidden_states.dtype)
+        elif self.use_beta:
             beta = self.b_proj(hidden_states).sigmoid()
         else:
             beta = torch.ones(*hidden_states.shape[:-1], self.num_heads,
@@ -398,12 +451,20 @@ class KronLSTM(nn.Module):
             g = F.softplus(self.f_proj(hidden_states).float() + self.dt_bias)
             g = rearrange(g, '... (h d) -> ... h d', d=self.k_head_dim)
             g = -self.A_log.float().exp().unsqueeze(-1) * g
+            if self.forget_angle:
+                # f = m cos(theta): sign as the gauge, log|f| = log m + log|cos(theta)| (floored at the lower bound)
+                theta = math.pi * self.f_angle_proj(hidden_states).float().sigmoid()
+                cos = rearrange(torch.cos(theta), '... (h d) -> ... h d', d=self.k_head_dim)
+                sign = torch.where(cos.detach() < 0, -1, 1).to(torch.int8)
+                g = g + cos.abs().clamp_min(math.exp(self.lower_bound)).log()
         else:
             g = -self.A_log.float().exp() * F.softplus(self.f_proj(hidden_states).float() + self.dt_bias)
 
         # the target gate's pre-activation in fp32 as well:
         # bf16's 8-bit mantissa is ~0.4% on the pre-activation itself
         target_gate = self.c_proj(hidden_states).float().sigmoid() if self.use_target_gate else None
+        if self.signed_write:
+            target_gate = 2.0 * target_gate - 1.0
         if self.unit_write:
             # the op scales the write cap by s = 2 too: hand it c / 2, so the write is c in [0, 1]
             target_gate = target_gate * 0.5

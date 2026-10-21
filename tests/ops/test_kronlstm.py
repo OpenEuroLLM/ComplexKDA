@@ -6,6 +6,7 @@
 #   https://github.com/fla-org/flash-linear-attention/graphs/contributors
 
 import functools
+import math
 
 import pytest
 import torch
@@ -576,3 +577,69 @@ def test_layer_lowrank_output_gate():
         assert torch.allclose(low.g_proj(h), torch.full_like(low.g_proj(h), 3.0))
     with pytest.raises(ValueError):
         KronLSTM(output_gate_rank='half', **kw)
+
+
+def _spy_op(layer, h):
+    """The op's inputs from one layer forward."""
+    import fla.layers.kronlstm as mod
+    calls, orig = [], mod.chunk_kronlstm
+
+    def spy(**a):
+        calls.append({k: (v.detach().clone() if torch.is_tensor(v) else v) for k, v in a.items()})
+        return orig(**a)
+    mod.chunk_kronlstm = spy
+    try:
+        out = layer(h)
+    finally:
+        mod.chunk_kronlstm = orig
+    return calls[0], out
+
+
+@pytest.mark.parametrize('opts', [dict(forget_angle=True), dict(forget_angle=True, erase_angle=True),
+                                  dict(forget_angle=True, erase_angle=True, signed_write=True)])
+def test_layer_polar_gates(opts):
+    """Polar gates: the op gets f = m cos(theta) (sign gauge + log|f|), beta* = (1 - r cos(phi)) / 2 under s = 2,
+    the write c (signed: 2 sigmoid - 1, halved for s = 2); at init each starts at the paper layer's value."""
+    from fla.layers import KronLSTM
+    kw = dict(hidden_size=128, k_head_dim=32, v_head_dim=32, num_k_heads=4, num_v_heads=4)
+    torch.manual_seed(0)
+    polar = KronLSTM(**kw, **opts).to(device)
+    torch.manual_seed(0)
+    paper = KronLSTM(**kw).to(device)
+    paper.load_state_dict({k: v for k, v in polar.state_dict().items() if k in paper.state_dict()}, strict=False)
+    h = torch.randn(1, 64, 128, device=device)
+    a, _ = _spy_op(polar, h)
+    b, _ = _spy_op(paper, h)
+    # forget: log|f| = log m + log cos(theta0), all positive at init
+    assert torch.allclose(a['g'], b['g'] + math.log(math.cos(math.pi * 0.05)), atol=1e-5)
+    assert (a['sign'] > 0).all()
+    if opts.get('erase_angle'):
+        assert a['allow_neg_eigval'] and polar.unit_write
+        # beta* ||a||^2 = 2 * beta_op = 1 - sigmoid(-z) cos(theta0) ~ sigmoid(z)
+        assert torch.allclose(2 * a['beta'].float(), 1 - (1 - b['beta'].float()) * math.cos(math.pi * 0.05), atol=1e-3)
+        if opts.get('signed_write'):  # c = 2 sigmoid(z + ln 3) - 1, z the paper gate's pre-activation
+            c = 2 * torch.sigmoid(torch.logit(b['target_gate'].double()) + math.log(3.0)).float() - 1
+            assert abs(c.mean().item() - 0.5) < 0.1
+        else:
+            c = b['target_gate']
+        assert torch.allclose(a['target_gate'], 0.5 * c, atol=1e-5)
+    # the angles learn: a flipped channel (theta past pi/2) gives sign -1 and the right magnitude
+    with torch.no_grad():
+        polar.f_angle_proj[-1].bias[:5] = 4.0  # theta = pi * sigmoid(4) = 3.08: cos = -0.998
+    a2, _ = _spy_op(polar, h)
+    sg = a2['sign'].reshape(*a2['sign'].shape[:-2], -1)
+    assert (sg[..., :5] < 0).all() and (sg[..., 5:] > 0).all()
+    polar.zero_grad()
+    polar(h)[0].sum().backward()
+    assert polar.f_angle_proj[-1].weight.grad.abs().sum() > 0
+    if opts.get('erase_angle'):
+        assert polar.b_angle_proj.weight.grad.abs().sum() > 0
+
+
+def test_chunk_negative_target_gate():
+    """A signed write target c in [-1, 1] (signed_write) through the chunk kernels, against the naive rule."""
+    x = gen(2, 200, 2, 64, 64)
+    x['ct'] = 2 * x['ct'] - 1
+    ref = run_grads(naive_recurrent_kronlstm, x, torch.float64, 'vector', 'E')
+    tri = run_grads(chunk_kronlstm, x, torch.float32, 'vector', 'E')
+    assert_all_close(ref, tri, TOL[torch.float32])
