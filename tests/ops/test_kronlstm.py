@@ -556,3 +556,23 @@ def test_layer_unit_write():
     assert torch.allclose(calls[0] * 2, calls[1]) and calls[0].max() <= 0.5
     # no effect without the extended range
     assert not KronLSTM(unit_write=True, **{**kw, 'allow_neg_eigval': False}).unit_write
+
+
+def test_layer_lowrank_output_gate():
+    """The low-rank output gate has Complex KDA's shape (hidden -> v_head_dim -> value_dim) and starts as the full
+    one: sigmoid(3) for every token (CPU: the gate projections only)."""
+    from fla.layers import KronLSTM
+    from fla.layers.complex_kda_layer import ComplexKimiDeltaAttention
+    kw = dict(hidden_size=256, k_head_dim=64, v_head_dim=64, num_k_heads=4, num_v_heads=4)
+    torch.manual_seed(0)
+    low = KronLSTM(output_gate_rank='lowrank', **kw)
+    full = KronLSTM(**kw)
+    ckda = ComplexKimiDeltaAttention(hidden_size=256, num_heads=4, head_dim=64, output_gate="lowrank")
+    shapes = lambda m: [tuple(p.shape) for p in m.g_proj.parameters()]  # noqa: E731
+    assert shapes(low) == shapes(ckda)
+    h = torch.randn(1, 64, 256)
+    with torch.no_grad():
+        assert torch.equal(low.g_proj(h), full.g_proj(h))
+        assert torch.allclose(low.g_proj(h), torch.full_like(low.g_proj(h), 3.0))
+    with pytest.raises(ValueError):
+        KronLSTM(output_gate_rank='half', **kw)

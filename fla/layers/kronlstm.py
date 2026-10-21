@@ -124,6 +124,10 @@ class KronLSTM(nn.Module):
         use_output_gate (bool, Optional):
             Whether to use the sigmoid-gated output norm.
             Its gate starts at `sigmoid(3)` for every token: bias 3 and zero weights. Default: `True`.
+        output_gate_rank (str, Optional):
+            `full`: one dense hidden -> value_dim projection; `lowrank`: hidden -> v_head_dim -> value_dim, as
+            Complex KDA's low-rank output gate (its parameter count); the second factor starts at zero weights
+            and bias 3, so the gate starts as the full one does. Default: `full`.
         layer_idx (int, Optional):
             The index of the layer, required when a cache is used. Default: `None`.
         norm_eps (float, Optional):
@@ -152,6 +156,7 @@ class KronLSTM(nn.Module):
         neg_eigval_init_bias: bool = False,
         unit_write: bool = False,
         use_output_gate: bool = True,
+        output_gate_rank: str = 'full',
         layer_idx: int | None = None,
         norm_eps: float = 1e-5,
         **kwargs,
@@ -241,7 +246,16 @@ class KronLSTM(nn.Module):
         self._reset_decay_parameters()
 
         # the output path: a sigmoid-gated RMSNorm with a dense hidden -> value_dim gate projection, then o_proj
-        if use_output_gate:
+        if output_gate_rank not in ('full', 'lowrank'):
+            raise ValueError(f"output_gate_rank=`{output_gate_rank}` is not one of ('full', 'lowrank').")
+        self.output_gate_rank = output_gate_rank
+        if use_output_gate and output_gate_rank == 'lowrank':
+            self.g_proj = nn.Sequential(
+                nn.Linear(hidden_size, v_head_dim, bias=False),
+                nn.Linear(v_head_dim, self.value_dim, bias=True),
+            )
+            self.o_norm = FusedRMSNormGated(v_head_dim, activation='sigmoid', eps=norm_eps)
+        elif use_output_gate:
             self.g_proj = nn.Linear(hidden_size, self.value_dim, bias=True)
             self.o_norm = FusedRMSNormGated(v_head_dim, activation='sigmoid', eps=norm_eps)
         else:
@@ -294,9 +308,10 @@ class KronLSTM(nn.Module):
             # sigmoid(-ln 3) = 1/4: s * sigmoid starts at 1/2, the s = 1 layer's sigmoid(0)
             nn.init.constant_(self.b_proj.bias, -math.log(3.0))
         if self.use_output_gate:
-            nn.init.constant_(self.g_proj.bias, OUT_GATE_BIAS_INIT)
-            # zero weights: the gate is exactly sigmoid(bias) for every token at initialisation
-            nn.init.zeros_(self.g_proj.weight)
+            # the (last) gate projection: zero weights, so the gate is exactly sigmoid(bias) for every token
+            last = self.g_proj[-1] if isinstance(self.g_proj, nn.Sequential) else self.g_proj
+            nn.init.constant_(last.bias, OUT_GATE_BIAS_INIT)
+            nn.init.zeros_(last.weight)
 
     def forward(
         self,
