@@ -138,6 +138,11 @@ class KronLSTM(nn.Module):
             per key dimension. `f in [-m, m]`; theta starts near 0, so the gate starts as the softplus one; the
             cosine is flat at 0 and pi, so a channel flips sign gradually. The sign is applied as the sign gauge.
             Needs `gate='softplus'` and `decay_gate='vector'`. Default: `False`.
+        forget_angle_init (str, Optional):
+            Initial angle of the polar forget gate. `narrow`: theta = 0.157 on every channel (cos 0.988, the
+            softplus gate's start). `broad`: the angle bias drawn per channel uniformly over
+            [logit(0.05), logit(0.95)], so theta spans (0.157, 2.98) and cos(theta) spans (0.988, -0.988):
+            both signs and a spread of magnitudes from step 0. Default: `narrow`.
         erase_angle (bool, Optional):
             Polar erase gate on the kept eigenvalue `lambda = 1 - beta* ||a||^2 = r cos(phi)`: the magnitude
             `r = sigmoid(-b(x))` and the angle `phi = pi sigmoid(.)` per head, so `beta in [0, 2]` (s = 2, with the
@@ -180,6 +185,7 @@ class KronLSTM(nn.Module):
         use_output_gate: bool = True,
         output_gate_rank: str = 'full',
         forget_angle: bool = False,
+        forget_angle_init: str = 'narrow',
         erase_angle: bool = False,
         signed_write: bool = False,
         forget_offset: float = 0.0,
@@ -213,6 +219,9 @@ class KronLSTM(nn.Module):
         if signed_write and not use_target_gate:
             raise ValueError("signed_write needs use_target_gate.")
         self.forget_angle, self.erase_angle, self.signed_write = forget_angle, erase_angle, signed_write
+        if forget_angle_init not in ('narrow', 'broad'):
+            raise ValueError(f"forget_angle_init=`{forget_angle_init}` is not one of ('narrow', 'broad').")
+        self.forget_angle_init = forget_angle_init
         if not (forget_offset >= 0.0 and math.isfinite(forget_offset)):
             raise ValueError(f"forget_offset must be finite and >= 0, got {forget_offset}")
         self.forget_offset = float(forget_offset)
@@ -357,6 +366,8 @@ class KronLSTM(nn.Module):
                 last = proj[-1] if isinstance(proj, nn.Sequential) else proj
                 nn.init.zeros_(last.weight)
                 nn.init.constant_(last.bias, ANGLE_INIT_BIAS)
+        if getattr(self, 'f_angle_proj', None) is not None and self.forget_angle_init == 'broad':
+            nn.init.uniform_(self.f_angle_proj[-1].bias, ANGLE_INIT_BIAS, -ANGLE_INIT_BIAS)
         if self.signed_write:
             # 2 sigmoid(ln 3) - 1 = 1/2: c starts at the sigmoid gate's mean
             nn.init.constant_(self.c_proj.bias, math.log(3.0))

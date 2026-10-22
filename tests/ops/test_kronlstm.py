@@ -688,3 +688,23 @@ def test_ckda_forget_offset():
     assert torch.allclose(calls[0], (calls[1] - 0.012).clamp_min(a.lower_bound), atol=1e-6)
     with pytest.raises(ValueError):
         mod.ComplexKimiDeltaAttention(forget_offset=-1.0, **kw)
+
+
+def test_layer_polar_forget_broad_init():
+    """forget_angle_init='broad': the angle bias spread per channel, so f starts with both signs and
+    a spread of |cos(theta)| (the magnitude gate unchanged); 'narrow' keeps theta0 = 0.157 everywhere."""
+    from fla.layers import KronLSTM
+    kw = dict(hidden_size=128, k_head_dim=32, v_head_dim=32, num_k_heads=4, num_v_heads=4, forget_angle=True)
+    torch.manual_seed(0)
+    broad = KronLSTM(**kw, forget_angle_init='broad').to(device)
+    torch.manual_seed(0)
+    narrow = KronLSTM(**kw).to(device)
+    bias = broad.f_angle_proj[-1].bias
+    cos = torch.cos(math.pi * torch.sigmoid(bias.float()))
+    assert cos.min() < -0.5 and cos.max() > 0.5 and cos.abs().max() <= math.cos(math.pi * 0.05) + 1e-5
+    assert torch.allclose(narrow.f_angle_proj[-1].bias, torch.full_like(bias, math.log(0.05 / 0.95)))
+    h = torch.randn(1, 64, 128, device=device)
+    a, _ = _spy_op(broad, h)
+    assert (a['sign'] < 0).any() and (a['sign'] > 0).any()
+    with pytest.raises(ValueError):
+        KronLSTM(**kw, forget_angle_init='wide')
