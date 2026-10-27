@@ -39,16 +39,23 @@ def _run(layer, x, cu_seqlens):
 @pytest.mark.parametrize("name", list(LAYERS))
 @pytest.mark.parametrize("varlen", [False, True])
 def test_layer_off_current_device(name, varlen):
+    # Everything reaches each GPU from the CPU: a direct cuda:0 <-> cuda:1 copy turns peer
+    # access on, and an unguarded kernel then silently reads the other GPU's memory (racy, but
+    # right in a synchronous test) instead of failing -- the test would not see the bug.
     torch.manual_seed(0)
-    ref_layer = LAYERS[name]().to("cuda:0", torch.bfloat16)
-    off_layer = LAYERS[name]().to("cuda:1", torch.bfloat16)
-    off_layer.load_state_dict(ref_layer.state_dict())
+    state = {k: v.to(torch.bfloat16) for k, v in LAYERS[name]().state_dict().items()}
     T = 1536  # several chunks and > 1024 (the HF-export NaN began at position 1024)
-    x = torch.randn(1, T, 256, dtype=torch.bfloat16, device="cuda:0")
-    cu0 = torch.tensor([0, 700, T], dtype=torch.int32, device="cuda:0") if varlen else None
+    x = torch.randn(1, T, 256, dtype=torch.bfloat16)
+    cu = torch.tensor([0, 700, T], dtype=torch.int32) if varlen else None
     torch.cuda.set_device(0)
-    ref = _run(ref_layer, x, cu0)
-    off = _run(off_layer, x.to("cuda:1"), cu0.to("cuda:1") if varlen else None)
+
+    def on(dev):
+        layer = LAYERS[name]().to(torch.bfloat16)
+        layer.load_state_dict(state)
+        return _run(layer.to(dev), x.to(dev), cu.to(dev) if varlen else None)
+
+    off = on("cuda:1")  # first: before anything else could have enabled peer access
+    ref = on("cuda:0")
     assert torch.cuda.current_device() == 0
     torch.testing.assert_close(off[0].cpu(), ref[0].cpu(), atol=0, rtol=0)
     # gradients: bf16 tolerances (atomic accumulations in the backward are not bit-deterministic);
