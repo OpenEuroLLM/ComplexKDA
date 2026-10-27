@@ -23,6 +23,8 @@ import torch
 import triton
 import triton.language as tl
 
+from fla.utils import input_guard
+
 
 @triton.jit
 def _tanh(x):
@@ -109,7 +111,10 @@ _BR, _BC = 32, 128
 
 
 class _SignedGate(torch.autograd.Function):
+    # input_guard: launch on the inputs' GPU, not the current one (a model spread over GPUs,
+    # e.g. HF device_map, otherwise reads another GPU's memory)
     @staticmethod
+    @input_guard
     def forward(ctx, z, dt_bias, A_log, lower_bound, scale, mode):
         shape = z.shape
         H, K = shape[-2], shape[-1]
@@ -131,6 +136,7 @@ class _SignedGate(torch.autograd.Function):
         return (sign.view(shape) if mode == 0 else sign), g.view(shape)
 
     @staticmethod
+    @input_guard
     def backward(ctx, _dsign, dg):
         zc, dt_bias, A_log = ctx.saved_tensors
         N, C = zc.shape
