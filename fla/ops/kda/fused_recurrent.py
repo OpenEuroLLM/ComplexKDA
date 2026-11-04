@@ -47,6 +47,7 @@ def fused_recurrent_kda_fwd_kernel(
     ssm_state_indices,
     num_accepted_tokens,
     lower_bound,
+    sign,
     scale: tl.constexpr,
     N: tl.int64,  # num of sequences
     T: tl.int64,  # num of tokens
@@ -75,6 +76,7 @@ def fused_recurrent_kda_fwd_kernel(
     ALLOW_NEG_EIGVAL: tl.constexpr,
     STATE_V_FIRST: tl.constexpr,
     num_stages: tl.constexpr,
+    SIGN_DECODE: tl.constexpr = False,
 ):
     pid = tl.program_id(0).to(tl.int64)
     NV = tl.cdiv(V, BV)
@@ -152,6 +154,12 @@ def fused_recurrent_kda_fwd_kernel(
         b_q = tl.load(p_q, mask=mask_k, other=0, eviction_policy='evict_last').to(tl.float32)
         b_k = tl.load(p_k, mask=mask_k, other=0, eviction_policy='evict_last').to(tl.float32)
         b_v = tl.load(p_v, mask=mask_v, other=0, eviction_policy='evict_first').to(tl.float32)
+        if SIGN_DECODE:
+            # one-token decode: the sign gauge P = the token's sign (q, k * P before the
+            # unsigned recurrence, the final state * P on the K axis): exact +-1 products
+            b_p = tl.load(sign + (bos * HV + i_hv) * K + o_k, mask=mask_k, other=1).to(tl.float32)
+            b_q = b_q * b_p
+            b_k = b_k * b_p
 
         if USE_QK_L2NORM_IN_KERNEL:
             b_q = b_q / tl.sqrt(tl.sum(b_q * b_q) + 1e-6)
@@ -214,7 +222,14 @@ def fused_recurrent_kda_fwd_kernel(
                 p_ht = p_ht + i_hv * K * V + o_v[:, None] * K + o_k[None, :]
             else:
                 p_ht = p_ht + i_hv * K * V + o_k[:, None] * V + o_v[None, :]
-            tl.store(p_ht, b_h.to(p_ht.dtype.element_ty), mask=mask_h)
+            if SIGN_DECODE:
+                if STATE_V_FIRST:
+                    b_hs = b_h * b_p[None, :]
+                else:
+                    b_hs = b_h * b_p[:, None]
+                tl.store(p_ht, b_hs.to(p_ht.dtype.element_ty), mask=mask_h)
+            else:
+                tl.store(p_ht, b_h.to(p_ht.dtype.element_ty), mask=mask_h)
 
         p_q += H * K
         p_k += H * K
@@ -255,12 +270,16 @@ def fused_recurrent_kda_fwd(
     allow_neg_eigval: bool = False,
     lower_bound: float | None = None,
     out: torch.Tensor | None = None,
+    sign_decode: torch.Tensor | None = None,
     **kwargs,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     if scale is None:
         scale = k.shape[-1] ** -0.5
 
     B, T, H, K, V = *k.shape, v.shape[-1]
+    if sign_decode is not None:
+        assert ssm_state_indices is not None and inplace_final_state, "in-place decode only"
+        assert sign_decode.shape[2] == H == v.shape[2], "sign per q/k head"
     HV = v.shape[2]
     N = B if cu_seqlens is None else len(cu_seqlens) - 1
     BK = triton.next_power_of_2(K)
@@ -307,6 +326,7 @@ def fused_recurrent_kda_fwd(
         ssm_state_indices=ssm_state_indices,
         num_accepted_tokens=num_accepted_tokens,
         lower_bound=lower_bound,
+        sign=sign_decode,
         scale=scale,
         N=N,
         T=T,
@@ -327,6 +347,7 @@ def fused_recurrent_kda_fwd(
         APPLY_BETA_SIGMOID=use_beta_sigmoid_in_kernel,
         ALLOW_NEG_EIGVAL=allow_neg_eigval,
         STATE_V_FIRST=state_v_first,
+        SIGN_DECODE=sign_decode is not None,
         num_warps=4,
         num_stages=2,
     )
