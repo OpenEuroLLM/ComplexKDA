@@ -152,6 +152,10 @@ class KronLSTM(nn.Module):
             A fixed extra decay per step on every channel, `log|f| - forget_offset`: shorter memory horizons,
             `|f| <= exp(-forget_offset)`. 0.012 is the polar gate's init cap (cos(0.157)), without the angle.
             Default: 0.
+        drop_silu (bool, Optional):
+            The short convolution without its SiLU (identity), as Complex KDA's ``drop_silu``: a layer
+            started from a Complex KDA layer's projections and convolution kernels then sees the same
+            q / k / v. Default: `False`.
         signed_write (bool, Optional):
             Target (write) gate `c = 2 sigmoid(.) - 1 in [-1, 1]` (bias ln 3: mean 0.5 at init, the sigmoid gate's),
             so a write can agree with a sign-flipped memory; `|c| <= 1` keeps the memory bound. Default: `False`.
@@ -189,6 +193,7 @@ class KronLSTM(nn.Module):
         erase_angle: bool = False,
         signed_write: bool = False,
         forget_offset: float = 0.0,
+        drop_silu: bool = False,
         layer_idx: int | None = None,
         norm_eps: float = 1e-5,
         **kwargs,
@@ -267,7 +272,7 @@ class KronLSTM(nn.Module):
         if use_short_conv:
             self.conv_size = conv_size
             self.qkv_conv1d = ShortConvolution(2 * self.key_dim + self.value_dim, conv_size, bias=conv_bias,
-                                               activation='silu')
+                                               activation=None if drop_silu else 'silu')
         else:
             warnings.warn("Short convolution is not used.", stacklevel=2)
 
